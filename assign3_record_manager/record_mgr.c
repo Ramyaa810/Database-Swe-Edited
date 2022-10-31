@@ -148,6 +148,7 @@ RC shutdownRecordManager ()
  */
 RC createTable (char *name, Schema *schema)
 {
+	printf("Create table is started\n");
 	SM_FileHandle filehandle;
  	char *serializedData = serializeSchema(schema);
 	int i;
@@ -170,6 +171,7 @@ RC createTable (char *name, Schema *schema)
  	{
  		return RC_WRITE_FAILED;
  	}
+	printf("Create table is ended\n");
 	return RC_OK;
 }
 
@@ -186,6 +188,7 @@ RC createTable (char *name, Schema *schema)
 */
 RC openTable (RM_TableData *rel, char *name)
 {
+	printf("Open table is started\n");
 	RM_RecordMgmt *rm_mgmt = (RM_RecordMgmt*)malloc(sizeof(RM_RecordMgmt));
 	FILE *fptr = fopen(name, "r+");	char* readHeader;
 	readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
@@ -206,6 +209,7 @@ RC openTable (RM_TableData *rel, char *name)
 	rel->mgmtData = rm_mgmt;
 	free(readHeader);
 	free(page);
+	printf("Open table is ended\n");
 	return RC_OK;
 }
 
@@ -221,6 +225,7 @@ RC openTable (RM_TableData *rel, char *name)
 */
 RC closeTable (RM_TableData *rel)
 {
+	printf("close table is started\n");
 	printf(" Entered close Table \n");
 	RM_RecordMgmt *rmgmt = (RM_RecordMgmt*)malloc(sizeof(RM_RecordMgmt));
 	rmgmt = rel->mgmtData;
@@ -232,7 +237,7 @@ RC closeTable (RM_TableData *rel)
 	free(rel->schema->typeLength);
 
 	free(rel->schema);
-
+printf("close table is ended\n");
 	return RC_OK;
 }
 
@@ -249,6 +254,7 @@ RC closeTable (RM_TableData *rel)
 
 RC deleteTable (char *name)
 {
+	printf("delete table is started\n");
 	printf("Entered Delete ");
 	RC destroyFlag = destroyPageFile(name);
 	if(destroyFlag == RC_OK)
@@ -258,6 +264,7 @@ RC deleteTable (char *name)
 	else{
 		return RC_FILE_NOT_FOUND;
 	}
+	printf("delete table is ended\n");
 }
 
 /*
@@ -314,6 +321,7 @@ int getNumTuples (RM_TableData *rel)
 
 RC insertRecord (RM_TableData *rel, Record *record)
 {
+	printf("Insert Record is started\n");
 	Record *r = (Record *)malloc(sizeof(Record));
 	RID rid;
 	rid.page = 1;
@@ -345,6 +353,7 @@ RC insertRecord (RM_TableData *rel, Record *record)
 	free(page);
 	((RM_RecordMgmt *)rel->mgmtData)->freePages[0] += 1;
 	totalPages++;
+	printf("insert record is ended\n");
 	return RC_OK;
 }
 
@@ -404,6 +413,7 @@ RC deleteRecord (RM_TableData *rel, RID id)
 
 RC updateRecord (RM_TableData *rel, Record *record)
 {
+	printf("update record is started\n");
 	printf("record to be updated: %s\n", record->data);
 	// Check boundary conditions for tuple availability
 	if(record->id.page <= 0 && record->id.page >  totalPages)
@@ -425,7 +435,7 @@ RC updateRecord (RM_TableData *rel, Record *record)
 		free(page);
 		return RC_OK;
 	}
-
+printf("update record is ended\n");
 	return RC_OK;
 }
 
@@ -446,7 +456,7 @@ RC updateRecord (RM_TableData *rel, Record *record)
 
 RC getRecord (RM_TableData *rel, RID id, Record *record)
 {
-
+printf("get record is started\n");
 	if(id.page <= 0 && id.page >  totalPages)
 	{
 		return RC_RM_NO_MORE_TUPLES;
@@ -471,7 +481,7 @@ RC getRecord (RM_TableData *rel, RID id, Record *record)
 
 		return RC_OK;
 	}
-
+printf("get record is ended\n");
 	return RC_OK;
 }
 
@@ -743,6 +753,7 @@ RC createRecord (Record **rec, Schema *schema)
  */
 RC freeRecord (Record *record)
 {
+	printf("free record is started\n");
 	if(record!= NULL)
 	{
 		//Data is freed
@@ -753,6 +764,7 @@ RC freeRecord (Record *record)
 		record = NULL;
 		free(record);
     }
+	printf("free record is ended\n");
 	return RC_OK;
 }
 
