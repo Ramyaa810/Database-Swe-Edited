@@ -166,7 +166,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const
 	//create the frames for buffer pool
 	for(i=0;i<numPages;i++)
 	{
-		createPageFrame(bp_mgmt);
+		createBufferFrame(bp_mgmt);
 	}
 
 	//initialize the values and store it in management data
