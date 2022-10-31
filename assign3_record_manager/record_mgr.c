@@ -737,6 +737,8 @@ RC createRecord (Record **rec, Schema *schema)
 	*rec = (Record*) malloc (sizeof(Record));
 	//Allocating memory for data 
 	(*rec)->data = (char*) malloc (getRecordSize(schema));
+	memset((*rec)->data,0,sizeof(Record));
+
 	printf("Create Record ended\n");
 	return RC_OK;
 }
