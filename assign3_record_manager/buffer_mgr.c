@@ -925,19 +925,19 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 */
 RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum)
 {
-		switch(bm->strategy)
+	if (!CheckValidManagementData(bm))
+		return RC_BUFFER_POOL_EXIST;
+
+	RC IsPageExistsReturnCode;
+
+	SM_FileHandle sm_FileHandle;
+	BufferManager *bufferManager = bm->mgmtData;
+	BufferFrame *frame = bufferManager->head;
+
+	RC openPageReturnCode = openPageFile((char *)bm->pageFile, &sm_FileHandle);
+	if (openPageReturnCode == RC_OK)
 	{
-	case RS_FIFO:
-		pinPageFIFO(bm, page, pageNum);
-		break;
-
-	case RS_LRU:
-		pinPageLRU(bm,page,pageNum);
-		break;
-
-	case RS_CLOCK:
-		pinPageCLOCK(bm,page,pageNum);
-		break;
+		CheckReplacementStrategy(page, bufferManager, pageNum, bm->strategy, frame, sm_FileHandle, bm);
 	}
 	return RC_OK;
 }
