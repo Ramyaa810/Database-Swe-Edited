@@ -431,8 +431,8 @@ printf("Test case 10\n");
 		TEST_CHECK(getRecord(table, rid, r));
 		printf("Test case 11\n");
 		//printf("getRecord - table %s\n", table);
-		printf("getRecord - rid %s\n", rid);
-		printf("getRecord - r %s\n", r);
+		// printf("getRecord - rid %s\n", rid);
+		// printf("getRecord - r %s\n", r);
 		ASSERT_EQUALS_RECORDS(fromTestRecord(schema, realInserts[i]), r, schema, "compare records");
 	printf("Test case 12\n");
 	}
