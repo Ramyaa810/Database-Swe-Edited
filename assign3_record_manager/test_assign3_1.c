@@ -436,6 +436,7 @@ testInsertManyRecords(void)
 
 	freeRecord(r);
 	free(table);
+	rids=NULL; // added by Ramya
 // ***** Added Summer 2021
     free(rids);
     freeSchema(schema);
