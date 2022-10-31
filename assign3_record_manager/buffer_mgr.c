@@ -305,29 +305,20 @@ RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page)
 */
 RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page)
 {
-	BufferManager *bufferManager = getunpinPageManager(bm);
-	BufferFrame *frame = getunpinPageFrame(bufferManager);
-	int number = bufferManager->head->pageNumber;
-	PageNumber pn = page->pageNum;
-	if (number == pn)
+	BufferManager *bp_mgmt;
+	bp_mgmt = bm->mgmtData;
+	BufferFrame *frame = bp_mgmt->head;
+
+	do
 	{
-		bufferManager->head->count--;
-		return RC_OK;
-	}
-	frame = frame->nextFrame;
-	int i;
-	//iterates through manager
-	for (i = 0; frame != bufferManager->head; i++)
-	{
-		//decrement total count of frame used in buffer
-		if (frame->pageNumber == page->pageNum)
+		if(page->pageNum == frame->pageNumber)
 		{
+			//decrement fix count
 			frame->count--;
 			return RC_OK;
 		}
-		//iterate through
 		frame = frame->nextFrame;
-	}
+	}while(frame!= bp_mgmt->head);
 
 	return RC_OK;
 }
