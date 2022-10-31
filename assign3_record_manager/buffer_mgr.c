@@ -151,41 +151,40 @@ Jason Scott - A20436737
 */
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const int numPages, ReplacementStrategy strategy, void *stratData)
 {
+//Memory allocation to store the Buffer Pool Management Data
+	BufferManager *bp_mgmt = (BufferManager*)malloc(sizeof(BufferManager));
+
+	bp_mgmt->start = NULL;
+	//Storage manager file handle
+	SM_FileHandle fHandle;
+
 	int i;
-	//checks if the pool exists
-	if (CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_EXIST;
 
-	BufferManager *bufferManager = GetBufferManager();
-	//uses a page code to open an existing page and create bufferpools for each page within
-	RC OpenPageReturnCode = openPageFile((char *)pageFileName, bufferManager->smFileHandle);
-	//case that it exists
-	if (OpenPageReturnCode == RC_OK)
-	{	//one for every page
-		for (i = 0; i < numPages; i++)
-			//calls upon previous method
-			createBufferFrame(bufferManager);
-		//initialize attributes and store within 
-		bufferManager->numWrite = 0;
-		bufferManager->tail = bufferManager->head;
-		bufferManager->numRead = 0;
-		//utilizes the mentioned stratety 
-		bufferManager->strategyData = stratData;
-		bufferManager->count = 0;
-		bm->strategy = strategy;
-		bm->numPages = numPages;
-		bm->mgmtData = bufferManager;
-		bm->pageFile = (char *)pageFileName;
-		
-		//finally close it
-		closePageFile(bufferManager->smFileHandle);
+	//open the page file, whose pages are to be cached
+	openPageFile((char*) pageFileName,&fHandle);
 
-		return RC_OK;
+	//create the frames for buffer pool
+	for(i=0;i<numPages;i++)
+	{
+		createPageFrame(bp_mgmt);
 	}
-	//case in which it doesn't exist, return the code
-	else
-		return OpenPageReturnCode;
-}
+
+	//initialize the values and store it in management data
+	bp_mgmt->tail = bp_mgmt->head;
+	bp_mgmt->strategyData = stratData;
+	bp_mgmt->count = 0;
+	bp_mgmt->numRead = 0;
+	bp_mgmt->numWrite = 0;
+	bm->numPages = numPages;
+	bm->pageFile = (char*) pageFileName;
+	bm->strategy = strategy;
+	bm->mgmtData = bp_mgmt;
+
+	//close the page file
+	closePageFile(&fHandle);
+
+	return RC_OK;
+	}
 
 /*
 Jason Scott - A20436737
