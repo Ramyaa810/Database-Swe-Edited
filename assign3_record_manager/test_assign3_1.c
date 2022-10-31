@@ -9,9 +9,10 @@
 #define ASSERT_EQUALS_RECORDS(_l,_r, schema, message)			\
 		do {									\
 			Record *_lR = _l;                                                   \
-			Record *_rR = _r;                                                   \
+			Record *_rR = _r;     				\
+			printf("ASSERT : %c",_lR->data); \
+			printf("ASSERT : %c",_rR->data); \                                              \
 			ASSERT_TRUE(memcmp(_lR->data,_rR->data,getRecordSize(schema)) == 0, message); \
-			printf("ASSERT"); \
 			int i;								\
 			for(i = 0; i < schema->numAttr; i++)				\
 			{									\
