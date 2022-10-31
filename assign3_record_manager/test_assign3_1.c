@@ -80,7 +80,7 @@ main (void)
 	testInsertManyRecords();
 	testRecords();
 	testCreateTableAndInsert();
-	// testUpdateTable();
+	testUpdateTable();
 	// testScans();
 	// testScansTwo();
 	// testMultipleScans();
