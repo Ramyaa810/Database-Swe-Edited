@@ -72,8 +72,8 @@ Record *fromTestRecord (Schema *schema, TestRecord in);
 char *testName;
 
 // main method
-int
-main (void)
+int 
+main (void) 
 {
 	testName = "";
 
@@ -88,7 +88,7 @@ main (void)
 	return 0;
 }
 
-// ************************************************************
+// ************************************************************ 
 void
 testRecords (void)
 {
@@ -127,7 +127,7 @@ testRecords (void)
 	TEST_DONE();
 }
 
-// ************************************************************
+// ************************************************************ 
 void
 testCreateTableAndInsert (void)
 {
@@ -157,19 +157,18 @@ testCreateTableAndInsert (void)
 
 	// insert rows into table
 	for(i = 0; i < numInserts; i++)
-    {
+	{
 		r = fromTestRecord(schema, inserts[i]);
 		TEST_CHECK(insertRecord(table,r));
 		rids[i] = r->id;
-        freeRecord(r);    // added Fall 2021
-    }
+	}
 
 	TEST_CHECK(closeTable(table));
 	TEST_CHECK(openTable(table, "test_table_r"));
 
 	// randomly retrieve records from the table and compare to inserted ones
 	for(i = 0; i < 1000; i++)
-	{   TEST_CHECK(createRecord(&r, schema));  // added Fall 2021
+	{
 		int pos = rand() % numInserts;
 		RID rid = rids[pos];
 		TEST_CHECK(getRecord(table, rid, r));
@@ -271,7 +270,7 @@ testMultipleScans(void)
 	TEST_DONE();
 }
 
-void
+void 
 testUpdateTable (void)
 {
 	RM_TableData *table = (RM_TableData *) malloc(sizeof(RM_TableData));
@@ -322,34 +321,28 @@ testUpdateTable (void)
 	for(i = 0; i < numInserts; i++)
 	{
 		r = fromTestRecord(schema, inserts[i]);
-		printf("Reached 325 test\n");
 		TEST_CHECK(insertRecord(table,r));
 		rids[i] = r->id;
         freeRecord(r);   // Added Summer 2021
 	}
 
 	// delete rows from table
-	printf("Reached 332 test\n");
-    TEST_CHECK(createRecord(&r, schema)); // added Fall 2021
 	for(i = 0; i < numDeletes; i++)
 	{
-		printf("Reached 336 test\n");
 		TEST_CHECK(deleteRecord(table,rids[deletes[i]]));
-		    printf("Reached 338 test\n");
-       ASSERT_ERROR(getRecord(table, rids[deletes[i]], r), "try to access record after you delete it");   // Added Summer 2021
+        ASSERT_ERROR(getRecord(table, rids[deletes[i]], r), "try to access record after you delete it");   // Added Summer 2021
 	}
     freeRecord(r);   // Added Summer 2021
-printf("Reached 342 test\n");
+    
 	// update rows into table
 	for(i = 0; i < numUpdates; i++)
 	{
 		r = fromTestRecord(schema, updates[i]);
 		r->id = rids[i];
-		printf("Reached 348 test\n");
 		TEST_CHECK(updateRecord(table,r));
         freeRecord(r);   // Added Summer 2021
 	}
-printf("Reached 351 test\n");
+
 	TEST_CHECK(closeTable(table));
 	TEST_CHECK(openTable(table, "test_table_r"));
 
@@ -358,9 +351,7 @@ printf("Reached 351 test\n");
 	for(i = 0; i < numFinal; i++)
 	{
 		RID rid = rids[i];
-		printf("Reached 361 test\n");
 		TEST_CHECK(getRecord(table, rid, r));
-		printf("Reached 363 test\n");
 		ASSERT_EQUALS_RECORDS(fromTestRecord(schema, finalR[i]), r, schema, "compare records");
 	}
 
@@ -370,7 +361,6 @@ printf("Reached 351 test\n");
 
 	free(table);
 // ***** Added Summer 2021
-//rids=NULL;
     free(rids);
     freeRecord(r);
     freeSchema(schema);
@@ -378,7 +368,7 @@ printf("Reached 351 test\n");
 	TEST_DONE();
 }
 
-void
+void 
 testInsertManyRecords(void)
 {
 	RM_TableData *table = (RM_TableData *) malloc(sizeof(RM_TableData));
@@ -422,12 +412,10 @@ testInsertManyRecords(void)
         freeRecord(r);   // Added Summer 2021
 	}
 	TEST_CHECK(closeTable(table));
-	printf("Reached test 417\n");
 	TEST_CHECK(openTable(table, "test_table_t"));
- printf("Reached test 419\n");
+
 	// retrieve records from the table and compare to expected final stage
     TEST_CHECK(createRecord(&r, schema));    // Added Summer 2021
-		printf("Reached test 422\n");
 	for(i = 0; i < numInserts; i++)
 	{
 		RID rid = rids[i];
@@ -441,22 +429,16 @@ testInsertManyRecords(void)
 	TEST_CHECK(updateRecord(table,r));
 	TEST_CHECK(getRecord(table, rids[randomRec], r));
 	ASSERT_EQUALS_RECORDS(fromTestRecord(schema, updates[0]), r, schema, "compare records");
- printf("Reached test 436n");
+
 	TEST_CHECK(closeTable(table));
-	printf("Reached test 438\n");
 	TEST_CHECK(deleteTable("test_table_t"));
-	printf("Reached test 440\n");
 	TEST_CHECK(shutdownRecordManager());
-	printf("Reached test 442\n");
+
 	freeRecord(r);
 	free(table);
-		printf("Reached test 445\n");
-		rids=NULL;
 // ***** Added Summer 2021
-		free(rids);
-		freeSchema(schema);
-			printf("Reached test 448\n");
-
+    free(rids);
+    freeSchema(schema);
 // *****
 	TEST_DONE();
 }
