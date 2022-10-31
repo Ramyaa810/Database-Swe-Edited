@@ -11,7 +11,7 @@
 			Record *_lR = _l;                                                   \
 			Record *_rR = _r;                                                   \
 			ASSERT_TRUE(memcmp(_lR->data,_rR->data,getRecordSize(schema)) == 0, message); \
-			printf("assert return"); \
+			printf("ASSERT"); \
 			int i;								\
 			for(i = 0; i < schema->numAttr; i++)				\
 			{									\
@@ -433,7 +433,7 @@ printf("Test case 10\n");
 		printf("Test case 11\n");
 		printf("value of r %d", r);
 		printf("value of schemas %d", schema);
-		// ASSERT_EQUALS_RECORDS(fromTestRecord(schema, realInserts[i]), r, schema, "compare records");
+		ASSERT_EQUALS_RECORDS(fromTestRecord(schema, realInserts[i]), r, schema, "compare records");
 	printf("Test case 12\n");
 	}
     freeRecord(r);   // Added Summer 2021
@@ -734,6 +734,6 @@ testRecord(Schema *schema, int a, char *b, int c)
 	MAKE_VALUE(value, DT_INT, c);
 	TEST_CHECK(setAttr(result, schema, 2, value));
 	freeVal(value);
-printf("Test  record result %d\n", result);
+	printf("Test  record result %d\n", result);
 	return result;
 }
