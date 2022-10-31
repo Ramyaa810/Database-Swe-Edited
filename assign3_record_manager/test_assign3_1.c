@@ -10,8 +10,6 @@
 		do {									\
 			Record *_lR = _l;                                                   \
 			Record *_rR = _r;     				\
-			printf("ASSERT : %c",_lR->data); \
-			printf("ASSERT : %c",_rR->data);                          \
 			ASSERT_TRUE(memcmp(_lR->data,_rR->data,getRecordSize(schema)) == 0, message); \
 			int i;								\
 			for(i = 0; i < schema->numAttr; i++)				\
@@ -422,14 +420,14 @@ testInsertManyRecords(void)
 	TEST_CHECK(closeTable(table));
 		printf("Test case 7\n");
 	TEST_CHECK(openTable(table, "test_table_t"));
-printf("Test case 8\n");
+	printf("Test case 8\n");
 	// retrieve records from the table and compare to expected final stage
     TEST_CHECK(createRecord(&r, schema));    // Added Summer 2021
 	printf("Test case 9\n");
 	for(i = 0; i < numInserts; i++)
 	{
 		RID rid = rids[i];
-printf("Test case 10\n");
+		printf("Test case 10\n");
 		TEST_CHECK(getRecord(table, rid, r));
 		printf("Test case 11\n");
 		printf("value of r %d", r);
