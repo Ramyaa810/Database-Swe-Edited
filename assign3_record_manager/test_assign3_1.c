@@ -79,7 +79,7 @@ main (void)
 
 	testInsertManyRecords();
 	testRecords();
-	// testCreateTableAndInsert();
+	testCreateTableAndInsert();
 	// testUpdateTable();
 	// testScans();
 	// testScansTwo();
