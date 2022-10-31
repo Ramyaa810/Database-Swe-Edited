@@ -398,8 +398,11 @@ testInsertManyRecords(void)
 	rids = (RID *) malloc(sizeof(RID) * numInserts);
 
 	TEST_CHECK(initRecordManager(NULL));
+	printf("Test case 1\n");
 	TEST_CHECK(createTable("test_table_t",schema));
+	printf("Test case 2\n");
 	TEST_CHECK(openTable(table, "test_table_t"));
+	printf("Test case 3\n");
 
 	// insert rows into table
 	for(i = 0; i < numInserts; i++)
@@ -407,41 +410,60 @@ testInsertManyRecords(void)
 		realInserts[i] = inserts[i%10];
 		realInserts[i].a = i;
 		r = fromTestRecord(schema, realInserts[i]);
+		printf("Test case 4\n");
 		TEST_CHECK(insertRecord(table,r));
+		printf("Test case 5\n");
 		rids[i] = r->id;
         freeRecord(r);   // Added Summer 2021
+		printf("Test case 6\n");
 	}
 	TEST_CHECK(closeTable(table));
+		printf("Test case 7\n");
 	TEST_CHECK(openTable(table, "test_table_t"));
-
+printf("Test case 8\n");
 	// retrieve records from the table and compare to expected final stage
     TEST_CHECK(createRecord(&r, schema));    // Added Summer 2021
+	printf("Test case 9\n");
 	for(i = 0; i < numInserts; i++)
 	{
 		RID rid = rids[i];
+printf("Test case 10\n");
 		TEST_CHECK(getRecord(table, rid, r));
+		printf("Test case 11\n");
 		ASSERT_EQUALS_RECORDS(fromTestRecord(schema, realInserts[i]), r, schema, "compare records");
+	printf("Test case 12\n");
 	}
     freeRecord(r);   // Added Summer 2021
-
+printf("Test case 13\n");
 	r = fromTestRecord(schema, updates[0]);
+	printf("Test case 14\n");
 	r->id = rids[randomRec];
 	TEST_CHECK(updateRecord(table,r));
+	printf("Test case 15\n");
 	TEST_CHECK(getRecord(table, rids[randomRec], r));
+	printf("Test case 16\n");
 	ASSERT_EQUALS_RECORDS(fromTestRecord(schema, updates[0]), r, schema, "compare records");
-
+printf("Test case 17\n");
 	TEST_CHECK(closeTable(table));
+	printf("Test case 18\n");
 	TEST_CHECK(deleteTable("test_table_t"));
+	printf("Test case 19\n");
 	TEST_CHECK(shutdownRecordManager());
+	printf("Test case 20\n");
 
 	freeRecord(r);
+	printf("Test case 21\n");
 	free(table);
+	printf("Test case 22\n");
 	rids=NULL; // added by Ramya
 // ***** Added Summer 2021
     free(rids);
+	printf("Test case 23\n");
     freeSchema(schema);
+	printf("Test case 24\n");
 // *****
 	TEST_DONE();
+	printf("Test case 25\n");
 }
 
 void testScans (void)
