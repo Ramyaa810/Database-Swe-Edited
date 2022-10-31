@@ -14,6 +14,7 @@ typedef struct BufferFrame
 	int pageNumber;
 	int count;
 	char *data;
+	int refBit;	
 } BufferFrame;
 
 //Creating structure to store buffer manager with buffer frame, number of read and write etc
@@ -586,24 +587,358 @@ RC CheckReplacementStrategy(BM_PageHandle *const page, BufferManager *bufferMana
 	return RC_OK;
 }
 
+RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
+{
+	SM_FileHandle fh;
+	BufferManager *bp_mgmt = bm->mgmtData;
+	BufferFrame *frame = bp_mgmt->head;
+
+	openPageFile((char*) bm->pageFile,&fh);
+
+	// if page is already present in the buffer pool
+	do
+	{
+		//put the data onto the page and increment the fix count
+		if(frame->pageNumber == pageNum)
+		{
+			page->pageNum = pageNum;
+			page->data = frame->data;
+
+			frame ->pageNumber = pageNum;
+			frame->count++;
+			return RC_OK;
+		}
+		frame = frame->nextFrame;
+	}while(frame!= bp_mgmt->head);
+
+	//if there are remaining frames in the buffer pool, i.e. bufferpool is not fully occupied
+	//pin the pages in the empty spaces
+	if(bp_mgmt->count < bm->numPages)
+	{
+		frame = bp_mgmt->head;
+		frame->pageNumber = pageNum;
+
+		//move the header to next empty space
+		if(frame->nextFrame != bp_mgmt->head)
+		{
+			bp_mgmt->head = frame->nextFrame;
+		}
+		frame->count++;
+		bp_mgmt->count++;	//increment the occupied count
+	}
+	else		//use page replacement strategy FIFO
+	{
+		//replace pages from frame
+		frame = bp_mgmt->tail;
+		do
+		{
+			//check if the page is in use, i.e. fixcount > 0
+			//goto next frame whose fix count = 0, and replace the page
+			if(frame->count != 0)
+			{
+				frame = frame->nextFrame;
+			}
+			else
+			{
+				//before replacing check for dirtyflag if dirty write back to disk and then replace
+				if(frame->dirtyFlag == 1)
+				{
+					ensureCapacity(frame->pageNumber, &fh);
+					if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+					{
+						closePageFile(&fh);
+						return RC_WRITE_FAILED;
+					}
+					bp_mgmt->numWrite++;
+				}
+
+				//update the frame and bufferPool attributes
+				frame->pageNumber = pageNum;
+				frame->count++;
+				bp_mgmt->tail = frame->nextFrame;
+				bp_mgmt->head = frame;
+
+				break;
+			}
+		}while(frame!= bp_mgmt->head);
+	}
+
+	//ensure if the pageFile has the required number of pages, if not create those
+	ensureCapacity((pageNum+1),&fh);
+
+	//read the block into pageFrame
+	if(readBlock(pageNum, &fh,frame->data)!=RC_OK)
+	{
+		closePageFile(&fh);
+		return RC_READ_NON_EXISTING_PAGE;
+	}
+
+	//increment the num of read operations
+	bp_mgmt->numRead++;
+
+	//update the attributes and put the data onto the page
+	page->pageNum = pageNum;
+	page->data = frame->data;
+
+	//close the pageFile
+	closePageFile(&fh);
+
+	return RC_OK;
+}
+
+// LRU Page Replacement Strategy Implementations
+/*
+ * This method implements LRU page replacement strategy
+ * i.e. the page which is Least Recently Used will be replaced, with the new page
+ */
+RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
+{
+	BufferManager *bp_mgmt = bm->mgmtData;
+	BufferFrame *frame = bp_mgmt->head;
+	SM_FileHandle fh;
+
+	openPageFile((char*)bm->pageFile,&fh);
+
+	//check if frame already in buffer pool
+	do
+	{
+		if(frame->pageNumber == pageNum)
+		{
+			//update the page and frame attributes
+			page->pageNum = pageNum;
+			page->data = frame->data;
+
+			frame->pageNumber = pageNum;
+			frame->count++;
+
+			//point the head and tail for replacement
+			bp_mgmt->tail = bp_mgmt->head->nextFrame;
+			bp_mgmt->head = frame;
+			return RC_OK;
+		}
+
+		frame = frame->nextFrame;
+
+	}while(frame!= bp_mgmt->head);
+
+	//if there are empty spaces in the bufferPool , then fill in those frames first
+	if(bp_mgmt->count < bm->numPages)
+	{
+
+		frame = bp_mgmt->head;
+		frame->pageNumber = pageNum;
+
+		if(frame->nextFrame != bp_mgmt->head)
+		{
+			bp_mgmt->head = frame->nextFrame;
+		}
+		frame->count++;		//increment the fix count
+		bp_mgmt->count++;	//increment the occupied Count
+	}
+	else
+	{
+		//replace pages from frame using LRU
+		frame = bp_mgmt->tail;
+		do
+		{
+			//check if page in use, move onto next page to be replaced
+			if(frame->count != 0)
+			{
+				frame = frame->nextFrame;
+			}
+			else
+			{
+				//before replacing check if dirty flag set, write back content onto the disk
+				if(frame->dirtyFlag == 1)
+				{
+					ensureCapacity(frame->pageNumber, &fh);
+					if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+					{
+						closePageFile(&fh);
+						return RC_WRITE_FAILED;
+					}
+					bp_mgmt->numWrite++;	//increment number of writes performed
+				}
+
+				//find the least recently used page and replace that page
+				if(bp_mgmt->tail != bp_mgmt->head)
+				{
+					frame->pageNumber = pageNum;
+					frame->count++;
+					bp_mgmt->tail = frame;
+					//bp_mgmt->head = frame;
+					bp_mgmt->tail = frame->nextFrame;
+					break;
+				}
+				else
+				{
+					frame = frame->nextFrame;
+					frame->pageNumber = pageNum;
+					frame->count++;
+					bp_mgmt->tail = frame;
+					bp_mgmt->head = frame;
+					bp_mgmt->tail = frame->prevFrame;
+					break;
+				}
+			}
+		}while(frame!= bp_mgmt->tail);
+	}
+
+	ensureCapacity((pageNum+1),&fh);
+	if(readBlock(pageNum, &fh,frame->data)!=RC_OK)
+	{
+		return RC_READ_NON_EXISTING_PAGE;
+	}
+	bp_mgmt->numRead++;
+
+	//update the page frame and its data
+	page->pageNum = pageNum;
+	page->data = frame->data;
+
+	//close the pagefile
+	closePageFile(&fh);
+
+	return RC_OK;
+}
+
+
+// CLOCK Page Replacement Strategy Implementations
+/*
+ * This method implements Clock Page Replacement Strategy
+ * it is more optimized version of FIFO, implements a circular queue
+ * with a reference bit set for each page in pageFrame
+ */
+RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
+{
+	SM_FileHandle fh;
+	BufferManager *bp_mgmt = bm->mgmtData;
+	BufferFrame *frame = bp_mgmt->head;
+	BufferFrame *temp;
+	openPageFile((char*)bm->pageFile,&fh);
+
+	// if frame already in buffer pool
+
+	do
+	{
+		//if same page
+		if(frame->pageNumber == pageNum)
+		{
+			page->pageNum = pageNum;
+			page->data = frame->data;
+
+			frame->refBit = 1;	//mark its reference bit as 1, as it is referred again
+			frame ->pageNumber = pageNum;
+			frame->count++;
+
+			return RC_OK;
+		}
+		frame = frame->nextFrame;
+	}while(frame!=bp_mgmt->head);
+
+	//if space present will be executed at the start when all the frames are empty
+	if(bp_mgmt->count < bm->numPages)
+	{
+		frame = bp_mgmt->head;
+
+		frame->pageNumber = pageNum;
+		frame->refBit = 1;	//and mark their reference bit as 1
+
+		//all the insertions will be made at the Head,
+		//every time the insert takes place head is moved to that node
+		if(frame->nextFrame != bp_mgmt->head)
+		{
+			bp_mgmt->head = frame->nextFrame;
+		}
+
+		frame->count++;
+		bp_mgmt->count++;
+
+	}
+	else
+	{
+		//if replacement reqd
+		frame = bp_mgmt->head;
+
+		do
+		{
+			//find a page whose reference bit is 0, to be replaced,
+			//and along its way make other reference bit which are 1 to 0
+
+			if(frame->count !=0)
+			{
+				frame = frame->nextFrame;
+			}
+			else
+			{
+				while(frame->refBit!=0)
+				{
+					frame->refBit = 0;
+					frame= frame->nextFrame;
+				}
+
+				//if reference bit is 0 replace the page
+				if(frame-> refBit == 0)
+				{
+					//check the page that is replaced,
+					//if its dirty bit is set, then writeBlock and then replace
+					if(frame->dirtyFlag == 1)
+					{
+						ensureCapacity(frame->pageNumber, &fh);
+						if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+						{
+							closePageFile(&fh);
+							return RC_WRITE_FAILED;
+						}
+						bp_mgmt->numWrite++;
+					}
+					//update all the frame & page attributes
+					frame->refBit = 1;
+					frame->pageNumber = pageNum;
+					frame->count++;
+					bp_mgmt->head = frame->nextFrame;
+					break;
+				}
+			}
+
+		}while(frame!=bp_mgmt->head);
+	}
+	ensureCapacity((pageNum+1),&fh);
+
+	if(readBlock(pageNum, &fh,frame->data)!=RC_OK)
+	{
+		closePageFile(&fh);
+		return RC_READ_NON_EXISTING_PAGE;
+	}
+
+	bp_mgmt->numRead++;
+	page->pageNum = pageNum;
+	page->data = frame->data;
+
+
+	closePageFile(&fh);
+
+	return RC_OK;
+}
+
+
 /* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
 // 1. Passes data through CheckReplacementStrategy() in order to figure out which strategy it'll pin(LRU or FIFO)
 */
 RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum)
 {
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_EXIST;
-
-	RC IsPageExistsReturnCode;
-
-	SM_FileHandle sm_FileHandle;
-	BufferManager *bufferManager = bm->mgmtData;
-	BufferFrame *frame = bufferManager->head;
-
-	RC openPageReturnCode = openPageFile((char *)bm->pageFile, &sm_FileHandle);
-	if (openPageReturnCode == RC_OK)
+		switch(bm->strategy)
 	{
-		CheckReplacementStrategy(page, bufferManager, pageNum, bm->strategy, frame, sm_FileHandle, bm);
+	case RS_FIFO:
+		pinPageFIFO(bm, page, pageNum);
+		break;
+
+	case RS_LRU:
+		pinPageLRU(bm,page,pageNum);
+		break;
+
+	case RS_CLOCK:
+		pinPageCLOCK(bm,page,pageNum);
+		break;
 	}
 	return RC_OK;
 }
