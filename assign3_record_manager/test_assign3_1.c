@@ -11,6 +11,7 @@
 			Record *_lR = _l;                                                   \
 			Record *_rR = _r;                                                   \
 			ASSERT_TRUE(memcmp(_lR->data,_rR->data,getRecordSize(schema)) == 0, message); \
+			printf("assert return"); \
 			int i;								\
 			for(i = 0; i < schema->numAttr; i++)				\
 			{									\
