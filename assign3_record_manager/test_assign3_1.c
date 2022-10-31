@@ -82,7 +82,7 @@ main (void)
 	testCreateTableAndInsert();
 	testUpdateTable();
 	testScans();
-	// testScansTwo();
+	testScansTwo();
 	// testMultipleScans();
 
 	return 0;
