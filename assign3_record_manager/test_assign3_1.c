@@ -430,6 +430,9 @@ printf("Test case 8\n");
 printf("Test case 10\n");
 		TEST_CHECK(getRecord(table, rid, r));
 		printf("Test case 11\n");
+		printf("getRecord - table %s\n", table);
+		printf("getRecord - rid %s\n", rid);
+		printf("getRecord - r %s\n", r);
 		ASSERT_EQUALS_RECORDS(fromTestRecord(schema, realInserts[i]), r, schema, "compare records");
 	printf("Test case 12\n");
 	}
@@ -718,6 +721,7 @@ testRecord(Schema *schema, int a, char *b, int c)
 	Value *value;
 
 	TEST_CHECK(createRecord(&result, schema));
+	printf("Create recors result %d\n", result);
 
 	MAKE_VALUE(value, DT_INT, a);
 	TEST_CHECK(setAttr(result, schema, 0, value));

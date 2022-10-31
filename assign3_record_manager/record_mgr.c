@@ -479,6 +479,7 @@ printf("get record is started\n");
 		free(deSerializedRecord);
 		free(page);
 
+printf("get record is ended\n");
 		return RC_OK;
 	}
 printf("get record is ended\n");
@@ -731,11 +732,12 @@ RC freeSchema (Schema *schema)
  
 RC createRecord (Record **rec, Schema *schema)
 {
+	printf("Create Record started\n");
 	//Allocating memory for record
 	*rec = (Record*) malloc (sizeof(Record));
 	//Allocating memory for data 
 	(*rec)->data = (char*) malloc (getRecordSize(schema));
-
+	printf("Create Record ended\n");
 	return RC_OK;
 }
 
