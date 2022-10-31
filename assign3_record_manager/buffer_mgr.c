@@ -1,3 +1,7 @@
+/*
+ * buffer_mgr.c
+ */
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -5,154 +9,88 @@
 #include "buffer_mgr.h"
 #include "storage_mgr.h"
 
-//Creating structure to store buffer frame
-typedef struct BufferFrame
+/*Structure for PageFrame inside BufferPool*/
+typedef struct PageFrame
 {
-	struct BufferFrame *prevFrame;
-	int dirtyFlag;
-	struct BufferFrame *nextFrame;
-	int pageNumber;
-	int count;
-	char *data;
-	int refBit;	
-} BufferFrame;
+	int frameNum;		//number associated with each Page frame
+	int pageNum;		//Page Number of the Page present in the Page frame
+	int dirtyFlag;		//Dirty flag to determine whether page was modified/write
+	int fixCount;		//Fix count to mark whether the page is in use by other users
+	int refBit;			//Reference bit used in CLOCK Algorithm to mark the page which is referred
+	char *data;			//Actual data present in the page
+	struct pageFrame *next, *prev;	//Nodes of the Doubly linked List where each node is a frame, pointing to other frames
+}PageFrame;
 
-//Creating structure to store buffer manager with buffer frame, number of read and write etc
-typedef struct BufferManager
+/*Structure for Buffer Pool to store Management Information*/
+typedef struct BM_BufferPool_Mgmt
 {
-	BufferFrame *head, *start, *tail;
-	int numRead;
-	int numWrite;
-	SM_FileHandle *smFileHandle;
-	int count;
-	void *strategyData;
-} BufferManager;
+	int occupiedCount;		//to keep count of number of frames occupied inside the pool
+	void *stratData;		//to pass parameters for page replacement strategies
+	PageFrame *head,*tail,*start;	//keep track of nodes in linked list
+	PageNumber *frameContent;	//an array of page numbers to store the statistics of number of pages stored in the page frame
+	int *fixCount;				//an array of integers to store the statistics of fix counts for a page
+	bool *dirtyBit;				//an array of bool's to store the statistics of dirty bits for modified page
+	int numRead;				//to give total number of pages read from the buffer pool
+	int numWrite;				//to give total number of pages wrote into the buffer pool
+}BM_BufferPool_Mgmt;
 
-/*1. This method is used to assign frame values such as previous frame, next frame, tail, head
-2. Takes BufferManger and BufferFrame as the input
-3. Assigns values to the frame and buffer manager
-*/
-void AssignBufferManagerValues(BufferManager *bufferManager, BufferFrame *frame)
-{	//define head as start of buffer
-	bufferManager->head = bufferManager->start;
-	//case that head has a value
-	if (bufferManager->head != NULL)
-	{	//case frame has a value
-		if (frame != NULL)
-		{
-			//assigns values to frame and manager
-			bufferManager->tail->nextFrame = frame;
-			frame->prevFrame = bufferManager->tail;
-			bufferManager->tail = bufferManager->tail->nextFrame;
-		}
-	}
-	//case head has no value
-	else
+
+/*This function is used to create a Buffer Pool with specified number of Page Frames
+ i.e linked list of frames with some default values, with the first frame acting as the head node
+ while the last acting as the tail node.
+ This function is called by the initBufferPool() function passing mgmt info as the parameter*/
+void createPageFrame(BM_BufferPool_Mgmt *mgmt)
+{
+	//Create a frame and assign a memory to it
+	PageFrame *frame = (PageFrame *) malloc(sizeof(PageFrame));
+
+	//intialise the page properties of the frames i.e each frame has a page within,
+	//so properties (default page values) are applied to the frames itself
+	frame->dirtyFlag = 0;	//FALSE
+	frame->fixCount = 0;
+	frame->frameNum = 0;
+	frame->pageNum = -1;
+	frame->refBit = 0;
+
+	//allocate memory for page to stored into the pageFrame
+	frame->data = calloc(PAGE_SIZE,sizeof(char*));
+
+	//initialise the pointers
+	mgmt->head = mgmt->start;
+
+	//if it is the 1st frame make it the HEAD node of Linked List
+	if(mgmt->head == NULL)
 	{
-		if (frame != NULL)
-		{
-			bufferManager->head = frame;
-			bufferManager->tail = bufferManager->head;
-			bufferManager->start = bufferManager->tail;
-		}
+		mgmt->head = frame;
+		mgmt->tail = frame;
+		mgmt->start = frame;
 	}
-	//iterate through
-	bufferManager->tail->nextFrame = bufferManager->head;
-	bufferManager->head->prevFrame = bufferManager->tail;
-}
-
-/*
-Different approach: External method to be used within initbufferpool
-1. This method creates the buffer frame from the buffer manager
-2. dirty flag, count, pagenumber and frames will be initialized
-*/
-void createBufferFrame(BufferManager *bufferManager)
-{
-	int i = 0;
-	int pn = -1;
-	BufferFrame *frame = (BufferFrame *)malloc(sizeof(BufferFrame));
-	char *calldata = calloc(PAGE_SIZE, sizeof(char *));
-	frame->data = calldata;
-	//counts num of dirty flags
-	if (i == 0)
+	else		//if other than 1st node, appened the nodes to the HEAD node, and make the link between these nodes
 	{
-		frame->dirtyFlag = i;
-		frame->count = i;
+		mgmt->tail->next = frame;
+		frame->prev = mgmt->tail;
+		mgmt->tail = mgmt->tail->next;
 	}
-	if (pn == -1)
-	{
-		frame->pageNumber = pn;
-	}
-	AssignBufferManagerValues(bufferManager, frame);
+
+	//initialise the other pointers of the linked list
+	mgmt->tail->next = mgmt->head;
+	mgmt->head->prev = mgmt->tail;
 }
 
-/*
-1. This method is used to empty the buffer pool and buffer manager
-2. Null value is set to all the properties in buffer pool and manager
-*/
-void CleanBufferPool(BufferManager *bufferManager, BM_BufferPool *bufferPool)
-{
-	int NumberofPages;
-	bufferPool->pageFile = NULL;
-	bufferPool->mgmtData = NULL;
-	bufferPool->numPages = NumberofPages;
-	bufferManager->start = NULL;
-	bufferManager->head = NULL;
-	bufferManager->tail = NULL;
-	free(bufferManager);
-}
+// Buffer Manager Interface Pool Handling
 
 /*
-1. This method is used to check if the given management data is valid
-2. If Null,returns false. If not null, returns true
-*/
-bool CheckValidManagementData(BM_BufferPool *const bufferPool)
+ * This function is used to create a Buffer Pool for an existing page file
+ * bm -> used to store the mgmtData
+ * pageFileName -> name of the page file, whose pages are to be cached
+ * numPages -> number of frames in the buffer Pool
+ * strategy -> Page Replacement Strategy to be used
+ * stratData -> parameters if required for any page replacement strategy
+ */
+RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const int numPages, ReplacementStrategy strategy,void *stratData)
 {
-	return (bufferPool->mgmtData == NULL) ? false : true;
-}
-
-/*
-1. This method is used to assign head from buffer manager to the frame
-2. Takes bufferManager as input and returns the Buffer Frame
-*/
-BufferFrame *getunpinPageFrame(BufferManager *const bufferManager)
-{
-	BufferFrame *frame = bufferManager->head;
-	return frame;
-}
-
-/*
-1. This method is used to assign management data from buffer pool 
-to the buffer manager
-2. Takes buffer pool as input and returns the Buffer Manager
-*/
-BufferManager *getunpinPageManager(BM_BufferPool *const bm)
-{
-	BufferManager *bufferManager = bm->mgmtData;
-	return bufferManager;
-}
-
-/*
-1. This method does meory allocation for Buffer Manager and File Handle
-2. Returns Buffer Manager as the output
-*/
-BufferManager *GetBufferManager()
-{
-	BufferManager *bufferManager = (BufferManager *)malloc(sizeof(BufferManager));
-	bufferManager->smFileHandle = (SM_FileHandle *)malloc(sizeof(SM_FileHandle));
-	return bufferManager;
-}
-
-/*
-Jason Scott - A20436737
-1. This method initiazatizes buffer pool
-2. Opens a existing page with new frames
-3. Initial data is stored within page and closed
-*/
-RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const int numPages, ReplacementStrategy strategy, void *stratData)
-{
-//Memory allocation to store the Buffer Pool Management Data
-	BufferManager *bp_mgmt = (BufferManager*)malloc(sizeof(BufferManager));
+	//Memory allocation to store the Buffer Pool Management Data
+	BM_BufferPool_Mgmt *bp_mgmt = (BM_BufferPool_Mgmt*)malloc(sizeof(BM_BufferPool_Mgmt));
 
 	bp_mgmt->start = NULL;
 	//Storage manager file handle
@@ -166,13 +104,13 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const
 	//create the frames for buffer pool
 	for(i=0;i<numPages;i++)
 	{
-		createBufferFrame(bp_mgmt);
+		createPageFrame(bp_mgmt);
 	}
 
 	//initialize the values and store it in management data
 	bp_mgmt->tail = bp_mgmt->head;
-	bp_mgmt->strategyData = stratData;
-	bp_mgmt->count = 0;
+	bp_mgmt->stratData = stratData;
+	bp_mgmt->occupiedCount = 0;
 	bp_mgmt->numRead = 0;
 	bp_mgmt->numWrite = 0;
 	bm->numPages = numPages;
@@ -184,412 +122,222 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const
 	closePageFile(&fHandle);
 
 	return RC_OK;
-	}
-
-/*
-Jason Scott - A20436737
-1. This method opens and checks for dirty pages
-2. All dirtypages with fix count zero are written to disk
-3. Writes it then closes before returning to method above to be destroyed
-*/
-RC forceFlushPool(BM_BufferPool *const bm)
-{
-	BufferManager *bufferManager = getunpinPageManager(bm);
-	BufferFrame *frame = getunpinPageFrame(bufferManager);
-
-	bufferManager->smFileHandle = (SM_FileHandle *)malloc(sizeof(SM_FileHandle));
-	RC openpageReturnCode = openPageFile((char *)(bm->pageFile), bufferManager->smFileHandle);
-	//again, checking that pages exists since we are not creating one
-	if (openpageReturnCode == RC_OK)
-	{
-		do
-		{	//required case that all pages with fix count 0... then we check if they're dirty
-			if (frame->count == 0)
-			{
-				//from checking, case that dirty pages exist
-				if (frame->dirtyFlag != 0)
-				{
-					int pn = frame->pageNumber;
-					SM_FileHandle *smhandle = bufferManager->smFileHandle;
-					//case in which dirty page is written back to disk
-					RC writeBlockReturnCode = writeBlock(pn, smhandle, frame->data);
-					if (writeBlockReturnCode == RC_OK)
-					{
-						frame->dirtyFlag = 0;
-						bufferManager->numWrite++;
-					}
-					//case we can't write back, we close the page and don't delete
-					else
-					{
-						closePageFile(bufferManager->smFileHandle);
-						return writeBlockReturnCode;
-					}
-				}
-			}
-			//iterate through the frame
-			frame = frame->nextFrame;
-		} while (frame != bufferManager->head);
-	}
-	else
-		return openpageReturnCode;
-	//close when completed
-	closePageFile(bufferManager->smFileHandle);
-	return RC_OK;
 }
 
 /*
-Jason Scott - A20436737
-1. This method destroyes buffer pool
-2. Utilizes forceflush method to write all the dirtyPages back again, before destroying
-3. It frees up the buffer pool's resources
-*/
+ * This function is used to destroy the buffer pool (bm)
+ * All the resources that are allocated i.e all memory allocation are free'd to avoid memory leaks
+ * All the dirtyPages are written back, before destroying
+ */
 RC shutdownBufferPool(BM_BufferPool *const bm)
 {
-	int i;
-	//checks it exists/init and is good to go
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_NOT_INIT;
-	//load the mgmt of buffer pool and gets head node 	
-	BufferManager *bufferManager = bm->mgmtData;
-	BufferFrame *frame = bufferManager->head;
-	//calls upon forceflush method for dirty pages with fix count 0 to be written
+	//load the mgmt data of the buffer pool
+	BM_BufferPool_Mgmt *bp_mgmt;
+	bp_mgmt = bm->mgmtData;
+
+	//point to the head node
+	PageFrame *Frame = bp_mgmt->head;
+
+	//calling forceFlush which writes all the dirtyPages back again, before destroying
 	forceFlushPool(bm);
-	//iterates through frames
-	frame = frame->nextFrame;
-	//frees all the page data in the frame
-	for (i = 0; frame != bufferManager->head; i++)
+
+	//free all the page data in the frame
+	do
 	{
-		//frees it then iterates through the frames
-		free(frame->data);
-		frame = frame->nextFrame;
-	}
-	free(frame);
-	CleanBufferPool(bufferManager, bm);
+		free(Frame->data);
+		Frame= Frame->next;
+	}while(Frame!=bp_mgmt->head);
+
+	//make the values NULL
+	bp_mgmt->start = NULL;
+	bp_mgmt->head = NULL;
+	bp_mgmt->tail = NULL;
+
+	//free the entire frame
+	free(Frame);
+
+	//free the bufferPool
+	free(bp_mgmt);
+
+	//set all the values to 0 or NULL
+	bm->numPages = 0;
+	bm->mgmtData = NULL;
+	bm->pageFile = NULL;
+
 	return RC_OK;
 }
 
-/* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-// This function will pass trhough a page, check if it's in the buffer, and then mark it dirty so that it can't be removed until it's written back to disk.
-//  1. Searches for given page
-//  2. If found in buffer, marks as dirty
-*/
-RC markDirty(BM_BufferPool *const bm, BM_PageHandle *const page)
+/*
+ * This function is used to write all the pages to the disk whose dirtyBit is set
+ */
+RC forceFlushPool(BM_BufferPool *const bm)
 {
-	int flag = 1;
-	//check buffer pool exists
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_NOT_INIT;
+	//load the mgmt Data
+	BM_BufferPool_Mgmt *bp_mgmt;
+	bp_mgmt = bm->mgmtData;
 
-	BufferManager *bufferManager = bm->mgmtData;
-	BufferFrame *frame = bufferManager->head;
+	//point to the head node
+	PageFrame *Frame = bp_mgmt->head;
+
+	SM_FileHandle fh;
+
+	//open the page file
+	if (openPageFile ((char *)(bm->pageFile), &fh) != RC_OK)
+	{
+		return RC_FILE_NOT_FOUND;
+	}
+
+	//check if dirtyFlag is set and fix count is 0,
+	//if YES, then write the pages to disk
 	do
 	{
-		//case it exists and is dirty, mark dirty
-		if (frame->pageNumber == page->pageNum)
+		if(Frame->dirtyFlag == 1 && Frame->fixCount == 0)
 		{
-			frame->dirtyFlag = flag;
+			//write the pages to disk
+			if(writeBlock(Frame->pageNum, &fh, Frame->data) != RC_OK)
+			{
+				closePageFile(&fh);
+				return RC_WRITE_FAILED;
+			}
+			Frame->dirtyFlag = 0;	//mark the dirtyFlag 0
+			bp_mgmt->numWrite++;
+		}
+		Frame = Frame->next;	//move to next frame
+	}while(Frame != bp_mgmt->head);
+
+	//close the page file
+	closePageFile(&fh);
+	return RC_OK;
+}
+
+// Buffer Manager Interface Access Pages
+
+/*
+ * This function is used to mark the page as dirty
+ * The page of BM_PageHandle's is marked with dirty bit set to 1
+ */
+RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page)
+{
+	BM_BufferPool_Mgmt *bp_mgmt;
+	bp_mgmt = bm->mgmtData;
+	PageFrame *frame = bp_mgmt->head;
+
+	do
+	{
+		//check if the pageNum is same as the page to be marked dirty
+		if(page->pageNum == frame->pageNum)
+		{
+			//mark it's dirty bit
+			frame->dirtyFlag = 1;
 			return RC_OK;
 		}
-		//not dirty so iterates through
-		else
-			frame = frame->nextFrame;
-
-	} while (frame != bufferManager->head);
+		frame=frame->next;
+	}while(frame!=bp_mgmt->head);
 
 	return RC_OK;
 }
 
-/* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-// 1. Checks to see if page is in the buffer pool
-// 2. If it is, decrement total count of frame used in buffer 
-*/
-RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page)
+/*
+ * This function is used to unpinpage
+ * After the user/client has done with reading of page it is set free, i.e its fixcount is decremented
+ * using unpinpage called as "UNPINNING"
+ */
+RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page)
 {
-	BufferManager *bp_mgmt;
+	BM_BufferPool_Mgmt *bp_mgmt;
 	bp_mgmt = bm->mgmtData;
-	BufferFrame *frame = bp_mgmt->head;
+	PageFrame *frame = bp_mgmt->head;
 
 	do
 	{
-		if(page->pageNum == frame->pageNumber)
+		if(page->pageNum == frame->pageNum)
 		{
 			//decrement fix count
-			frame->count--;
+			frame->fixCount--;
 			return RC_OK;
 		}
-		frame = frame->nextFrame;
+		frame = frame->next;
 	}while(frame!= bp_mgmt->head);
 
 	return RC_OK;
 }
 
-/* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-// 1. Checks if the page exists
-// 2. If it does, it will check to see if it is dirty
-// 3. If it is dirty, writes to disk and increments writeIO count
-*/
-RC forcePage(BM_BufferPool *const bm, BM_PageHandle *const page)
-{
-	BufferManager *bufferManager = getunpinPageManager(bm);
-	BufferFrame *frame = getunpinPageFrame(bufferManager);
-
-	bufferManager->smFileHandle = (SM_FileHandle *)malloc(sizeof(SM_FileHandle));
-	RC openpageReturnCode = openPageFile((char *)(bm->pageFile), bufferManager->smFileHandle);
-	//checks if existing based on return code
-	if (openpageReturnCode == RC_OK)
-	{
-		do
-		{	//dirty checking and page number within frame check
-			if (frame->dirtyFlag == 1 && frame->pageNumber == page->pageNum)
-			{
-				RC writeBlockReturnCode = writeBlock(frame->pageNumber, bufferManager->smFileHandle, frame->data);
-				//case we can write, then write to disk and continue
-				if (writeBlockReturnCode == RC_OK)
-				{
-					frame->dirtyFlag = 0;
-					bufferManager->numWrite++;
-				}
-				else
-				{
-					closePageFile(bufferManager->smFileHandle);
-					return writeBlockReturnCode;
-				}
-			}
-			frame = frame->nextFrame;
-		} while (frame != bufferManager->head);
-	}
-	else
-		return openpageReturnCode;
-	closePageFile(bufferManager->smFileHandle);
-	return RC_OK;
-}
-
 /*
-1. This method gets the strategy, page number and required 
-parameters to check if the page exists
-2. Returns RC_OK if page exists
-*/
-RC CheckIfPageExists(int algo, const PageNumber pageNum, 
-BufferManager *bufferManager, BM_PageHandle *const page)
+ * This function writes the page passed to it in BM_PageHandle back to the disk
+ */
+RC forcePage (BM_BufferPool *const bm, BM_PageHandle *const page)
 {
-	int value = 0;
-	BufferFrame *frame = bufferManager->head;
+	BM_BufferPool_Mgmt *bp_mgmt;
+	bp_mgmt = bm->mgmtData;
+
+	PageFrame *Frame = bp_mgmt->head;
+	SM_FileHandle fh;
+
+
+	//Open PageFile for write operation
+	if (openPageFile ((char *)(bm->pageFile), &fh) != RC_OK)
+	{
+		return RC_FILE_NOT_FOUND;
+	}
+
+	//find the page that needs to be written back & check if its dirty flag is 1
 	do
-	{	//case the manager is not at the head and frame page number isnt the page number  
-		if (frame->pageNumber != pageNum)
-			//iterate through
-			frame = frame->nextFrame;
-		else
-		{	//if not, then re-assign values
-			page->pageNum = pageNum;
-			page->data = frame->data;
-
-			frame->pageNumber = pageNum;
-			frame->count++;
-			//required and mentioned LRU
-			if (algo == RS_LRU)
+	{
+		if(Frame->pageNum == page->pageNum && Frame->dirtyFlag == 1)
+		{
+			if(writeBlock(Frame->pageNum, &fh, Frame->data) != RC_OK)
 			{
-				bufferManager->tail = bufferManager->head->nextFrame;
-				bufferManager->head = frame;
+				closePageFile(&fh);
+				return RC_WRITE_FAILED;
 			}
-			value = 1;
-			return RC_OK;
+			bp_mgmt->numWrite++;	//increment the num of writes performed
+			Frame->dirtyFlag = 0;	//unmark its dirty bit
+			break;
 		}
-	} while (frame != bufferManager->head);
-	//error display for non-existing
-	if (value == 0)
-		return RC_IM_KEY_NOT_FOUND;
+		Frame= Frame->next;
+	}while(Frame!=bp_mgmt->head);
+
+	closePageFile(&fh);
 	return RC_OK;
 }
 
 /*
-1. This method is used to check if the buffer pool is empty*/
-void CheckIfBufferPoolIsEmpty(const PageNumber pageNumber, 
-BM_BufferPool *const bufferPool)
+ * This function is used to put a page onto the bufferPool
+ * Each page is put in a pageFrame, which is put onto the bufferPool
+ * This method is called as "PINNING" a page.
+ */
+RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
 {
-	BufferManager *bufferManager = getunpinPageManager(bufferPool);
-	BufferFrame *frame = getunpinPageFrame(bufferManager);
-	int np = bufferPool->numPages;
-	int c = bufferManager->count;
-	if (np > c)
+	// Choose the appropriate Page Replacement Strategy
+	// We have implemented FIFO, LRU and CLOCK strategy
+
+	switch(bm->strategy)
 	{
-		frame = bufferManager->head;
-		frame->pageNumber = pageNumber;
-		BufferFrame *nxt = frame->nextFrame;
-		BufferFrame *head = bufferManager->head;
-		if (nxt != head)
-		{
-			bufferManager->head = nxt;
-		}
-		frame->count = frame->count + 1;
-		bufferManager->count = bufferManager->count + 1;
-	}
-}
+	case RS_FIFO:
+		pinPageFIFO(bm, page, pageNum);
+		break;
 
-/*
-This method is used to close the page file and return code
-*/
-RC CheckReturnCode(SM_FileHandle sm_fileHandle, RC returnCode)
-{
-	closePageFile(&sm_fileHandle);
-	return returnCode;
-}
+	case RS_LRU:
+		pinPageLRU(bm,page,pageNum);
+		break;
 
-/*
-1.This method is used to pin the last recently used frame from the buffer frame
-2. Returns RC_OK if the write block and read block are executed and succeeded
-*/
-RC LRU(SM_FileHandle sm_FileHandle, BM_PageHandle *const page, const PageNumber pageNumber,
-	   BufferFrame *frame, BM_BufferPool *const bm, BufferManager *bufferManager)
-{
-	if (bm->numPages <= bufferManager->count)
-	{
-		frame = bufferManager->tail;
-		do
-		{
-			if (frame->count != 0)
-				frame = frame->nextFrame;
-			else
-			{
-				if (frame->dirtyFlag != 0)
-				{
-					int pn = frame->pageNumber;
-					ensureCapacity(pn, &sm_FileHandle);
-					RC writeBlockReturnCode = writeBlock(pn, &sm_FileHandle, frame->data);
-					if (writeBlockReturnCode == RC_OK)
-						bufferManager->numWrite++;
-					else
-						return CheckReturnCode(sm_FileHandle, writeBlockReturnCode);
-				}
-
-				if (bufferManager->tail == bufferManager->head)
-				{
-					PageNumber pnu = pageNumber;
-					frame = frame->nextFrame;
-					frame->pageNumber = pnu;
-					frame->count++;
-					bufferManager->tail = frame;
-					bufferManager->head = bufferManager->tail;
-					bufferManager->tail = frame->prevFrame;
-					break;
-				}
-				else
-				{
-					PageNumber pnu = pageNumber;
-					frame->pageNumber = pnu;
-					frame->count++;
-					bufferManager->tail = frame->nextFrame;
-					break;
-				}
-			}
-		} while (frame != bufferManager->tail);
-	}
-	else
-		CheckIfBufferPoolIsEmpty(pageNumber, bm);
-	ensureCapacity((pageNumber + 1), &sm_FileHandle);
-	RC readBlockReturnCode = readBlock(pageNumber, &sm_FileHandle, frame->data);
-	if (readBlockReturnCode == RC_OK)
-		bufferManager->numRead++;
-	else
-		return readBlockReturnCode;
-	page->pageNum = pageNumber;
-	page->data = frame->data;
-	closePageFile(&sm_FileHandle);
-	return RC_OK;
-}
-
-/*
-1.This method is used to pin the FIFO frame from the buffer frame
-2. Returns RC_OK if the write block and read block are executed and succeeded
-*/
-RC FIFO(SM_FileHandle sm_FileHandle, BM_PageHandle *const page, const PageNumber pageNumber,
-		BufferFrame *bufferFrame, BM_BufferPool *const bm, BufferManager *mgmt)
-{
-	if (bm->numPages <= mgmt->count)
-	{
-		bufferFrame = mgmt->tail;
-		do
-		{
-			if (bufferFrame->count != 0)
-				bufferFrame = bufferFrame->nextFrame;
-			else
-			{
-				if (bufferFrame->dirtyFlag != 0)
-				{
-					int pn = bufferFrame->pageNumber;
-					ensureCapacity(pn, &sm_FileHandle);
-					RC writeBlockReturnCode = writeBlock(pn, &sm_FileHandle, bufferFrame->data);
-					if (writeBlockReturnCode == RC_OK)
-						mgmt->numWrite++;
-					else
-						return CheckReturnCode(sm_FileHandle, writeBlockReturnCode);
-				}
-
-				mgmt->tail = bufferFrame->nextFrame;
-				bufferFrame->pageNumber = pageNumber;
-				mgmt->head = bufferFrame;
-				bufferFrame->count++;
-				break;
-			}
-
-		} while (bufferFrame != mgmt->head);
-	}
-
-	else
-		CheckIfBufferPoolIsEmpty(pageNumber, bm);
-	ensureCapacity((pageNumber + 1), &sm_FileHandle);
-	RC readBlockReturnCode = readBlock(pageNumber, &sm_FileHandle, bufferFrame->data);
-	if (readBlockReturnCode == RC_OK)
-		mgmt->numRead++;
-	else
-		return CheckReturnCode(sm_FileHandle, readBlockReturnCode);
-	page->pageNum = pageNumber;
-	page->data = bufferFrame->data;
-	closePageFile(&sm_FileHandle);
-	return RC_OK;
-}
-
-/*
-1.This method is used to check the replacement strategy 
-2. Pins LRU, FIFO based on the replacement strategy algorithm
-3. Returns RC_OK if the LRU and FIFO are executed and succeeded
-*/
-RC CheckReplacementStrategy(BM_PageHandle *const page, BufferManager *bufferManager, const PageNumber pageNum,
-							ReplacementStrategy strategy, BufferFrame *frame, SM_FileHandle sm_FileHandle, BM_BufferPool *const bufferPool)
-{
-	RC IsPageExistsReturnCode;
-	if (bufferPool->strategy == RS_LRU)
-	{
-		IsPageExistsReturnCode = CheckIfPageExists(RS_LRU, pageNum, bufferManager, page);
-		if (IsPageExistsReturnCode == RC_OK)
-			return RC_OK;
-		else
-			LRU(sm_FileHandle, page, pageNum, frame, bufferPool, bufferManager);
-	}
-	else if (bufferPool->strategy == RS_FIFO)
-	{
-		IsPageExistsReturnCode = CheckIfPageExists(RS_FIFO, pageNum, bufferManager, page);
-		if (IsPageExistsReturnCode == RC_OK)
-			return RC_OK;
-		else
-			FIFO(sm_FileHandle, page, pageNum, frame, bufferPool, bufferManager);
-	}
-	else if (bufferPool->strategy == RS_CLOCK)
-	{
-		IsPageExistsReturnCode = CheckIfPageExists(RS_CLOCK, pageNum, bufferManager, page);
-		if (IsPageExistsReturnCode == RC_OK)
-			return RC_OK;
-		else
-			pinPageCLOCK(bufferPool, page, pageNum);
+	case RS_CLOCK:
+		pinPageCLOCK(bm,page,pageNum);
+		break;
 	}
 	return RC_OK;
 }
 
+// FIFO Page Replacement Strategy Implementation
+/*
+ * This function pinPageFIFO is implementation of First In First Out (FIFO)
+ * Here, we have implemented Queue implementation for FIFO
+ */
 RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
 {
 	SM_FileHandle fh;
-	BufferManager *bp_mgmt = bm->mgmtData;
-	BufferFrame *frame = bp_mgmt->head;
+	BM_BufferPool_Mgmt *bp_mgmt = bm->mgmtData;
+	PageFrame *frame = bp_mgmt->head;
 
 	openPageFile((char*) bm->pageFile,&fh);
 
@@ -597,32 +345,32 @@ RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumb
 	do
 	{
 		//put the data onto the page and increment the fix count
-		if(frame->pageNumber == pageNum)
+		if(frame->pageNum == pageNum)
 		{
 			page->pageNum = pageNum;
 			page->data = frame->data;
 
-			frame ->pageNumber = pageNum;
-			frame->count++;
+			frame ->pageNum = pageNum;
+			frame->fixCount++;
 			return RC_OK;
 		}
-		frame = frame->nextFrame;
+		frame = frame->next;
 	}while(frame!= bp_mgmt->head);
 
 	//if there are remaining frames in the buffer pool, i.e. bufferpool is not fully occupied
 	//pin the pages in the empty spaces
-	if(bp_mgmt->count < bm->numPages)
+	if(bp_mgmt->occupiedCount < bm->numPages)
 	{
 		frame = bp_mgmt->head;
-		frame->pageNumber = pageNum;
+		frame->pageNum = pageNum;
 
 		//move the header to next empty space
-		if(frame->nextFrame != bp_mgmt->head)
+		if(frame->next != bp_mgmt->head)
 		{
-			bp_mgmt->head = frame->nextFrame;
+			bp_mgmt->head = frame->next;
 		}
-		frame->count++;
-		bp_mgmt->count++;	//increment the occupied count
+		frame->fixCount++;
+		bp_mgmt->occupiedCount++;	//increment the occupied count
 	}
 	else		//use page replacement strategy FIFO
 	{
@@ -632,17 +380,17 @@ RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumb
 		{
 			//check if the page is in use, i.e. fixcount > 0
 			//goto next frame whose fix count = 0, and replace the page
-			if(frame->count != 0)
+			if(frame->fixCount != 0)
 			{
-				frame = frame->nextFrame;
+				frame = frame->next;
 			}
 			else
 			{
 				//before replacing check for dirtyflag if dirty write back to disk and then replace
 				if(frame->dirtyFlag == 1)
 				{
-					ensureCapacity(frame->pageNumber, &fh);
-					if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+					ensureCapacity(frame->pageNum, &fh);
+					if(writeBlock(frame->pageNum,&fh, frame->data)!=RC_OK)
 					{
 						closePageFile(&fh);
 						return RC_WRITE_FAILED;
@@ -651,9 +399,9 @@ RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumb
 				}
 
 				//update the frame and bufferPool attributes
-				frame->pageNumber = pageNum;
-				frame->count++;
-				bp_mgmt->tail = frame->nextFrame;
+				frame->pageNum = pageNum;
+				frame->fixCount++;
+				bp_mgmt->tail = frame->next;
 				bp_mgmt->head = frame;
 
 				break;
@@ -691,8 +439,8 @@ RC pinPageFIFO(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumb
  */
 RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
 {
-	BufferManager *bp_mgmt = bm->mgmtData;
-	BufferFrame *frame = bp_mgmt->head;
+	BM_BufferPool_Mgmt *bp_mgmt = bm->mgmtData;
+	PageFrame *frame = bp_mgmt->head;
 	SM_FileHandle fh;
 
 	openPageFile((char*)bm->pageFile,&fh);
@@ -700,38 +448,38 @@ RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumbe
 	//check if frame already in buffer pool
 	do
 	{
-		if(frame->pageNumber == pageNum)
+		if(frame->pageNum == pageNum)
 		{
 			//update the page and frame attributes
 			page->pageNum = pageNum;
 			page->data = frame->data;
 
-			frame->pageNumber = pageNum;
-			frame->count++;
+			frame->pageNum = pageNum;
+			frame->fixCount++;
 
 			//point the head and tail for replacement
-			bp_mgmt->tail = bp_mgmt->head->nextFrame;
+			bp_mgmt->tail = bp_mgmt->head->next;
 			bp_mgmt->head = frame;
 			return RC_OK;
 		}
 
-		frame = frame->nextFrame;
+		frame = frame->next;
 
 	}while(frame!= bp_mgmt->head);
 
 	//if there are empty spaces in the bufferPool , then fill in those frames first
-	if(bp_mgmt->count < bm->numPages)
+	if(bp_mgmt->occupiedCount < bm->numPages)
 	{
 
 		frame = bp_mgmt->head;
-		frame->pageNumber = pageNum;
+		frame->pageNum = pageNum;
 
-		if(frame->nextFrame != bp_mgmt->head)
+		if(frame->next != bp_mgmt->head)
 		{
-			bp_mgmt->head = frame->nextFrame;
+			bp_mgmt->head = frame->next;
 		}
-		frame->count++;		//increment the fix count
-		bp_mgmt->count++;	//increment the occupied Count
+		frame->fixCount++;		//increment the fix count
+		bp_mgmt->occupiedCount++;	//increment the occupied Count
 	}
 	else
 	{
@@ -740,17 +488,17 @@ RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumbe
 		do
 		{
 			//check if page in use, move onto next page to be replaced
-			if(frame->count != 0)
+			if(frame->fixCount != 0)
 			{
-				frame = frame->nextFrame;
+				frame = frame->next;
 			}
 			else
 			{
 				//before replacing check if dirty flag set, write back content onto the disk
 				if(frame->dirtyFlag == 1)
 				{
-					ensureCapacity(frame->pageNumber, &fh);
-					if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+					ensureCapacity(frame->pageNum, &fh);
+					if(writeBlock(frame->pageNum,&fh, frame->data)!=RC_OK)
 					{
 						closePageFile(&fh);
 						return RC_WRITE_FAILED;
@@ -761,21 +509,21 @@ RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumbe
 				//find the least recently used page and replace that page
 				if(bp_mgmt->tail != bp_mgmt->head)
 				{
-					frame->pageNumber = pageNum;
-					frame->count++;
+					frame->pageNum = pageNum;
+					frame->fixCount++;
 					bp_mgmt->tail = frame;
 					//bp_mgmt->head = frame;
-					bp_mgmt->tail = frame->nextFrame;
+					bp_mgmt->tail = frame->next;
 					break;
 				}
 				else
 				{
-					frame = frame->nextFrame;
-					frame->pageNumber = pageNum;
-					frame->count++;
+					frame = frame->next;
+					frame->pageNum = pageNum;
+					frame->fixCount++;
 					bp_mgmt->tail = frame;
 					bp_mgmt->head = frame;
-					bp_mgmt->tail = frame->prevFrame;
+					bp_mgmt->tail = frame->prev;
 					break;
 				}
 			}
@@ -809,9 +557,9 @@ RC pinPageLRU(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumbe
 RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNumber pageNum)
 {
 	SM_FileHandle fh;
-	BufferManager *bp_mgmt = bm->mgmtData;
-	BufferFrame *frame = bp_mgmt->head;
-	BufferFrame *temp;
+	BM_BufferPool_Mgmt *bp_mgmt = bm->mgmtData;
+	PageFrame *frame = bp_mgmt->head;
+	PageFrame *temp;
 	openPageFile((char*)bm->pageFile,&fh);
 
 	// if frame already in buffer pool
@@ -819,37 +567,37 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 	do
 	{
 		//if same page
-		if(frame->pageNumber == pageNum)
+		if(frame->pageNum == pageNum)
 		{
 			page->pageNum = pageNum;
 			page->data = frame->data;
 
 			frame->refBit = 1;	//mark its reference bit as 1, as it is referred again
-			frame ->pageNumber = pageNum;
-			frame->count++;
+			frame ->pageNum = pageNum;
+			frame->fixCount++;
 
 			return RC_OK;
 		}
-		frame = frame->nextFrame;
+		frame = frame->next;
 	}while(frame!=bp_mgmt->head);
 
 	//if space present will be executed at the start when all the frames are empty
-	if(bp_mgmt->count < bm->numPages)
+	if(bp_mgmt->occupiedCount < bm->numPages)
 	{
 		frame = bp_mgmt->head;
 
-		frame->pageNumber = pageNum;
+		frame->pageNum = pageNum;
 		frame->refBit = 1;	//and mark their reference bit as 1
 
 		//all the insertions will be made at the Head,
 		//every time the insert takes place head is moved to that node
-		if(frame->nextFrame != bp_mgmt->head)
+		if(frame->next != bp_mgmt->head)
 		{
-			bp_mgmt->head = frame->nextFrame;
+			bp_mgmt->head = frame->next;
 		}
 
-		frame->count++;
-		bp_mgmt->count++;
+		frame->fixCount++;
+		bp_mgmt->occupiedCount++;
 
 	}
 	else
@@ -862,16 +610,16 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 			//find a page whose reference bit is 0, to be replaced,
 			//and along its way make other reference bit which are 1 to 0
 
-			if(frame->count !=0)
+			if(frame->fixCount !=0)
 			{
-				frame = frame->nextFrame;
+				frame = frame->next;
 			}
 			else
 			{
 				while(frame->refBit!=0)
 				{
 					frame->refBit = 0;
-					frame= frame->nextFrame;
+					frame= frame->next;
 				}
 
 				//if reference bit is 0 replace the page
@@ -881,8 +629,8 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 					//if its dirty bit is set, then writeBlock and then replace
 					if(frame->dirtyFlag == 1)
 					{
-						ensureCapacity(frame->pageNumber, &fh);
-						if(writeBlock(frame->pageNumber,&fh, frame->data)!=RC_OK)
+						ensureCapacity(frame->pageNum, &fh);
+						if(writeBlock(frame->pageNum,&fh, frame->data)!=RC_OK)
 						{
 							closePageFile(&fh);
 							return RC_WRITE_FAILED;
@@ -891,9 +639,9 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 					}
 					//update all the frame & page attributes
 					frame->refBit = 1;
-					frame->pageNumber = pageNum;
-					frame->count++;
-					bp_mgmt->head = frame->nextFrame;
+					frame->pageNum = pageNum;
+					frame->fixCount++;
+					bp_mgmt->head = frame->next;
 					break;
 				}
 			}
@@ -919,152 +667,165 @@ RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page,const PageNum
 }
 
 
-/* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-// 1. Passes data through CheckReplacementStrategy() in order to figure out which strategy it'll pin(LRU or FIFO)
-*/
-RC pinPage(BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum)
-{
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_EXIST;
 
-	RC IsPageExistsReturnCode;
-
-	SM_FileHandle sm_FileHandle;
-	BufferManager *bufferManager = bm->mgmtData;
-	BufferFrame *frame = bufferManager->head;
-
-	RC openPageReturnCode = openPageFile((char *)bm->pageFile, &sm_FileHandle);
-	if (openPageReturnCode == RC_OK)
-	{
-		CheckReplacementStrategy(page, bufferManager, pageNum, bm->strategy, frame, sm_FileHandle, bm);
-	}
-	return RC_OK;
-}
-
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the number of pages
-2. Inputs- buffer pool object
-3. returns - Returns number of pages in the buffer pool
-*/
-int GetPageCount(BM_BufferPool *const bm)
-{
-	return bm->numPages;
-}
 
 // Statistics Interface
 
-PageNumber *getPNForFrameContent(BM_BufferPool *const bm, int page_count)
-{
-	PageNumber *frameContent = (PageNumber *)malloc(sizeof(PageNumber) * page_count);
-	return frameContent;
-}
-
 /*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the frame content from the buffer pool
-2. Inputs- buffer pool object
-3. returns - Returns number of pages stored in the page frame
+* Function: getFrameContents
+* ---------------------------
+* This function returns an array of page numbers where the ith element is page stored in the ith page frame. 
+*
+* *bm: stores information about the buffer pool
+* mgmt: Structure which stores information about the buffer manager.
+* frame: Structure which stores information about the buffer frame.
+* BM_BufferPool: structure that holds the buffer pool with pagefile and page frames. 	
+*
+* return: value of the contents of frame is returned
+*        
 */
-PageNumber *getFrameContents(BM_BufferPool *const bm)
-{
-	int page_count = GetPageCount(bm);
 
-	PageNumber *frameContent = getPNForFrameContent(bm,page_count);	
-	BufferFrame *allFrames = ((BufferManager *)bm->mgmtData)->start;
-	if (frameContent != NULL)
+PageNumber *getFrameContents (BM_BufferPool *const bm)
+{ 
+	int i, page_count;
+	i=0;
+	page_count = bm->numPages;
+	
+	PageFrame *frame = ((BM_BufferPool_Mgmt *)bm->mgmtData)->start;	
+	PageNumber* fContents = (PageNumber*)malloc(sizeof(PageNumber)*bm->numPages);
+
+	if(fContents != NULL)
 	{
-		int i;
-		//iterate through pages and gets the frame content from the buffer pool
-		for (i = 0; i < page_count; i++)
+		while(i<page_count)
 		{
-			frameContent[i] = allFrames->pageNumber;
-			allFrames = allFrames->nextFrame;
+			fContents[i] = frame->pageNum;
+			i++;
+			frame = frame->next;
 		}
 	}
-	return frameContent;
+	return fContents;
 }
 
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the dirty flag of all the pages from the buffer pool
-2. Inputs- buffer pool object
-3. returns - Returns true(if the page is modified)or false(if the page is not modified) for each pages in the buffer pool
-*/
-bool *getDirtyFlags(BM_BufferPool *const bm)
-{
-	int page_count = GetPageCount(bm);
-	BufferFrame *currentFrame = ((BufferManager *)bm->mgmtData)->start;
 
-	bool *dirtyFlag = (bool *)malloc(sizeof(bool) * page_count);
-	//case exists dirtyflag
-	if (dirtyFlag != NULL)
+/*
+* Function: getDirtyFlags
+* ---------------------------
+* This function returns an array of boolean values where the ith element is marked TRUE if the page frame is dirty (modified). 
+*
+* *bm: stores information about the buffer pool
+* mgmt: Structure which stores information about the buffer manager.
+* frame: Structure which stores information about the buffer frame.
+* BM_BufferPool: structure that holds the buffer pool with pagefile and page frames. 	
+* dirtyBit: bit that contains the boolean value that specifies if a page is dirty or not. 
+*
+* return: returns an array of the dirtyFlag details of size numPages
+*        
+*/
+
+bool *getDirtyFlags (BM_BufferPool *const bm)
+{
+		
+	int i,page_count;
+	i=0;
+	page_count = bm->numPages;
+
+	PageFrame *frame = ((BM_BufferPool_Mgmt *)bm->mgmtData)->start;
+	
+	bool* dirtyBit = (bool*)malloc(sizeof(bool)*page_count);
+	
+	//Empty pages are clean
+	if(dirtyBit != NULL) 
 	{
-		int i;
-		for (i = 0; i < page_count; i++)
+		while(i<page_count)
 		{
-			//iterates through and displays which are dirty 
-			dirtyFlag[i] = currentFrame->dirtyFlag;
-			currentFrame = currentFrame->nextFrame;
+			dirtyBit[i] = frame->dirtyFlag;
+			i++;
+			frame = frame->next;
 		}
 	}
-	return dirtyFlag;
+	return dirtyBit;
 }
 
+
 /*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the dirty flag of all the pages from the buffer pool
-2. Inputs- buffer pool object
-3. returns - Returns fix count stored of the page stored in the page frame
+* Function: getFixCounts
+* ---------------------------
+	* This function returns an array of integers that specify how many times a page is being accessed by different users. 
+	*
+	* *bm: stores information about the buffer pool
+	* mgmt: Structure which stores information about the buffer manager.
+	* frame: Structure which stores information about the buffer frame.
+	* BM_BufferPool: structure that holds the buffer pool with pagefile and page frames. 	
+	*
+	* return: returns an array of the integers with fixCount values of a page frame
+*        
 */
-int *getFixCounts(BM_BufferPool *const bm)
+
+int *getFixCounts (BM_BufferPool *const bm)
 {
-	int page_count = GetPageCount(bm);
+	
+	if (bm->mgmtData == NULL)
+	printf ("\nBuffer Pool not initialised"); 
 
-	BufferFrame *currentFrame = ((BufferManager *)bm->mgmtData)->start;
+	PageFrame *frame = ((BM_BufferPool_Mgmt *)bm->mgmtData)->start;
+	
+	int i, page_count;
+	i=0;
+	page_count = bm->numPages;
+	
+	int *fixCount = (int*) malloc (sizeof(int) * page_count);
 
-	int *fixCountResult = (int *)malloc(sizeof(int) * page_count);
-
-	if (fixCountResult != NULL)
+	if(fixCount != NULL)
 	{
-		int i;
-		for (i = 0; i < page_count; i++)
+		while(i<page_count)
 		{
-			fixCountResult[i] = currentFrame->count;
-			currentFrame = currentFrame->nextFrame;
+			fixCount[i] = frame->fixCount;
+			i++;
+			frame = frame->next;
 		}
+		
 	}
-	return fixCountResult;
+	return  fixCount;
 }
 
 /*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the number of pages read from the buffer pool since initialized
-2. Inputs- buffer pool object
-3. returns - Returns number of pages read from the buffer pool
+* Function: getNumReadIO
+* ---------------------------
+* This function gets the number of the readBlock operations performed. 
+*
+* *bm: stores information about the buffer pool
+* mgmt: Structure which stores information about the buffer manager.
+* BM_BufferPool: structure that holds the buffer pool with pagefile and page frames. 	
+* 
+* return: the page that has been read
+*        
 */
-int getNumReadIO(BM_BufferPool *const bm)
+int getNumReadIO (BM_BufferPool *const bm)
 {
-	//checks if pool has been init
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_NOT_INIT;
-	//exists so returns number of pages read 
+	if(bm->mgmtData != NULL)
+		return ((BM_BufferPool_Mgmt *)bm->mgmtData)->numRead;
 	else
-		return ((BufferManager *)bm->mgmtData)->numRead;
+		return 0;
 }
 
+
 /*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the number of pages write in to the buffer pool since initialized
-2. Inputs- buffer pool object
-3. returns - Returns number of pages write into the buffer pool
+* Function: getNumWriteIO
+* ---------------------------
+* This function gets the total number of all the writeBlock operations performed. 
+*
+* *bm: stores information about the buffer pool
+* mgmt: Structure which stores information about the buffer manager.
+* BM_BufferPool: structure that holds the buffer pool with pagefile and page frames. 	
+* 
+* return: the page that has been written        
 */
-int getNumWriteIO(BM_BufferPool *const bm)
+
+
+int getNumWriteIO (BM_BufferPool *const bm)
 {
-	//checks if pool has been init
-	if (!CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_NOT_INIT;
-	//Returns number of pages writen into buffer
+	if(bm->mgmtData != NULL)
+		return ((BM_BufferPool_Mgmt *)bm->mgmtData)->numWrite;
 	else
-		return ((BufferManager *)bm->mgmtData)->numWrite;
+		return 0;
 }
