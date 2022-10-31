@@ -583,6 +583,14 @@ RC CheckReplacementStrategy(BM_PageHandle *const page, BufferManager *bufferMana
 		else
 			FIFO(sm_FileHandle, page, pageNum, frame, bufferPool, bufferManager);
 	}
+	else if (bufferPool->strategy == RS_CLOCK)
+	{
+		IsPageExistsReturnCode = CheckIfPageExists(RS_CLOCK, pageNum, bufferManager, page);
+		if (IsPageExistsReturnCode == RC_OK)
+			return RC_OK;
+		else
+			pinPageCLOCK(bufferPool, page, pageNum);
+	}
 	return RC_OK;
 }
 
