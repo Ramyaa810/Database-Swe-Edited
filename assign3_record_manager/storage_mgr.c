@@ -314,12 +314,10 @@ int firstPageNumber = 0;
 
 RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	RC flag = readBlock(getBlockPos(fHandle)-1,fHandle,memPage);
-	if(flag != RC_OK)
-		return RC_READ_NON_EXISTING_PAGE;
-	else
-		return RC_OK;
+	int currentPosValue = getBlockPos(fHandle);
+
+	//Previous page postion is sent to the readblock and read into the memory page
+	return readBlock(currentPosValue - 1, fHandle, memPage);
 }
 
 /*
