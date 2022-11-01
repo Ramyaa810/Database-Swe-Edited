@@ -118,15 +118,12 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 
 RC closePageFile (SM_FileHandle *fHandle)
 {
-	//closes the file and returns 0
-	if(fHandle->mgmtInfo != NULL)
-	{
+	// Validation
+	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+
+	// Action
 	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
-		else return RC_FILE_NOT_FOUND;
-	}
-	else //case it doesnt exist
-		return RC_FILE_NOT_FOUND;
 }
 
 //destroying the page file
