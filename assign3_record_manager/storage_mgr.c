@@ -5,6 +5,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "stdbool.h"
 
 /*
 * Function: initStorageManger
@@ -142,6 +143,49 @@ if(remove(fileName) == 0)
 *		  RC_OK if the write successful
 *
 */
+
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the given page number is valid
+2. Checks if page number is less than zero and it is a valid page number
+3. If yes, it will return false
+4. If no, it will retrun true
+*/
+bool checkValidPageNumber(int pageNum, int totalNumberOfPagesInTheFile)
+{
+	return ((pageNum<0) & (pageNum> totalNumberOfPagesInTheFile)) ? false : true;
+}
+
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the result of the fseek is valid
+2. If seek result is not zero, return false
+3. If seek result is zero, return true
+*/
+bool checkValidSeek(int resultOfseek)
+{
+	return (resultOfseek > 0 || resultOfseek < 0) ? false : true;
+}
+
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the result of the fseek is valid
+2. If page size and the fread result is equal, return true
+3. If page size and the fread result is not equal, return false
+*/
+bool checkValidRead(int resultOfRead)
+{
+	return (PAGE_SIZE == resultOfRead) ? true : false;
+}
+
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+This method sets the pagenumber to the current page position in the Handler property
+*/
+void setCurrentPosition(int pageNumber, SM_FileHandle *fHandle)
+{
+	fHandle->curPagePos = pageNumber;
+}
 
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
