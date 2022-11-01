@@ -65,9 +65,10 @@ void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
 
 void updatePageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
-	markDirtyInfo(((RecordManager *)rel->mgmtData)->bm, page);
-	unpinPageInfo(((RecordManager *)rel->mgmtData)->bm, page);
-	forcePageInfo(((RecordManager *)rel->mgmtData)->bm, page);
+	BM_BufferPool *bm = ((RecordManager *)rel->mgmtData)->bm;
+	markDirtyInfo(bm, page);
+	unpinPageInfo(bm, page);
+	forcePageInfo(bm, page);
 }
 
 /*
