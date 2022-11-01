@@ -255,9 +255,22 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 int getBlockPos (SM_FileHandle *fHandle)
 {
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-	return fHandle->curPagePos;
+	if (checkValidfHandle(fHandle))
+	{
+		if (checkValidMgmtInfo(fHandle))
+		{
+			//returns the current page position in the 
+			return fHandle->curPagePos;
+		}
+		else
+		{
+			return RC_FILE_NOT_FOUND;
+		}
+	}
+	else
+	{
+		return RC_FILE_HANDLE_NOT_INIT;
+	}
 }
 
 /*
