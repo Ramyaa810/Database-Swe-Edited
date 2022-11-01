@@ -228,10 +228,10 @@ void fileSeekOperation(SM_PageHandle emptyPage, char * fn)
 */
 RC appendEmptyBlock(SM_FileHandle* fHandle)
 {
-	// if(!checkValidfHandle(fHandle))
-	// 	return RC_FILE_HANDLE_NOT_INIT;
-	// if(!checkValidMgmtInfo(fHandle))
-	// 	return RC_FILE_NOT_FOUND;
+	if(!checkValidfHandle(fHandle))
+		return RC_FILE_HANDLE_NOT_INIT;
+	if(!checkValidMgmtInfo(fHandle))
+		return RC_FILE_NOT_FOUND;
 
 	// char *fn = fHandle->fileName;
 	// SM_PageHandle emptyPage = getEmptyPageHandle();
@@ -240,8 +240,8 @@ RC appendEmptyBlock(SM_FileHandle* fHandle)
 	// return RC_OK;
 
 	// Validation
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+	// if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	// if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
 
 	char * newPage = (char*)calloc(PAGE_SIZE, sizeof(char));
 	fseek(fHandle->mgmtInfo,(fHandle->totalNumPages+1)*PAGE_SIZE,SEEK_SET);
