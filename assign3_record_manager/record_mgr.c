@@ -211,10 +211,12 @@ RC createTable(char *name, Schema *schema)
 char* readHeader(const char * name)
 {
 	char *readHeader;	
+	char * totalPage;
 	FILE *file = fopen(name, "r+");
 	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	fgets(readHeader, PAGE_SIZE, file);
-	return readHeader;
+	totalPage= readHeader;
+	return totalPage;
 }
 
 /*
@@ -232,12 +234,12 @@ RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
-	FILE *file = fopen(name, "r+");
-	char *readHeader;
-	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	fgets(readHeader, PAGE_SIZE, file);
+	// FILE *file = fopen(name, "r+");
+	// char *readHeader;
+	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	// fgets(readHeader, PAGE_SIZE, file);
 	char *totalPage;
-	totalPage = readHeader;
+	totalPage = readHeader(name);
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
