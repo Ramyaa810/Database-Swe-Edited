@@ -162,14 +162,14 @@ RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 	return RC_OK;
 }
 
-RM_TableDetail*  createTableDetailObject()
-{	
+RM_TableDetail *createTableDetailObject()
+{
 	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
 	return tableDetail;
 }
 
-RecordManager*  createRecordManagerObject()
-{	
+RecordManager *createRecordManagerObject()
+{
 	RecordManager *recordManager = (RecordManager *)malloc(sizeof(RecordManager));
 	return recordManager;
 }
@@ -204,18 +204,18 @@ RC createTable(char *name, Schema *schema)
 
 	tableDetail->schemaSize = value;
 	RC writeflag = writeBlock(value, &filehandle, info);
-	return (writeflag == RC_OK) ?  RC_OK : RC_WRITE_FAILED;
+	return (writeflag == RC_OK) ? RC_OK : RC_WRITE_FAILED;
 	printf("Create table is ended\n");
 }
 
-char readHeader(char * name)
-{	
+char readHeader(char *name)
+{
 	FILE *file = fopen(name, "r+");
 	char *readHeader;
 	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	fgets(readHeader, PAGE_SIZE, file);
 	char *totalPage;
-	totalPage= readHeader;
+	totalPage = readHeader;
 	return totalPage;
 }
 
@@ -239,7 +239,7 @@ RC openTable(RM_TableData *rel, char *name)
 	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	fgets(readHeader, PAGE_SIZE, file);
 	char *totalPage;
-	totalPage = readHeader;	
+	totalPage = readHeader;
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
@@ -301,8 +301,14 @@ RC deleteTable(char *name)
 {
 	printf("delete table is started\n");
 	RC destroyFlag = destroyPageFile(name);
-	return destroyFlag != RC_OK ? RC_FILE_NOT_FOUND : RC_OK;	
+	return destroyFlag != RC_OK ? RC_FILE_NOT_FOUND : RC_OK;
 	printf("delete table is ended\n");
+}
+
+Record *createRecordObject()
+{
+	Record *record = (Record *)malloc(sizeof(Record));
+	return record;
 }
 
 /*
@@ -317,32 +323,42 @@ RC deleteTable(char *name)
 
 int getNumTuples(RM_TableData *rel)
 {
-	Record *record = (Record *)malloc(sizeof(Record));
-	RID rid;
-	int count = 0;
+	Record *record = createRecordObject();
+	RID ridValue;
 	RC flagGetRecord;
-
-	rid.page = 1;
-	rid.slot = 0;
-
-	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	int one = 1;
+	int zero = 0;
+	int total = zero;
+	ridValue.page = one;
+	ridValue.slot = zero;
+	if (ridValue.page < totalNumberOfPages && ridValue.page > 0)
 	{
-		flagGetRecord = getRecord(rel, rid, record);
-		if (flagGetRecord != RC_OK)
+		flagGetRecord = getRecord(rel, ridValue, record);
+		if (flagGetRecord == RC_OK)
 		{
-			printf("Get records failed!");
-		}
-		else
-		{
-			count += 1;
-			rid.page += 1;
-			rid.slot = 0;
+			total += 1;
+			ridValue.page += 1;
+			ridValue.slot = 0;
 		}
 	}
+	// while (rid.page > 0 && rid.page < totalNumberOfPages)
+	// {
+	// 	flagGetRecord = getRecord(rel, rid, record);
+	// 	if (flagGetRecord != RC_OK)
+	// 	{
+	// 		printf("Get records failed!");
+	// 	}
+	// 	else
+	// 	{
+	// 		count += 1;
+	// 		rid.page += 1;
+	// 		rid.slot = 0;
+	// 	}
+	// }
 
 	record = NULL;
 	free(record);
-	return count;
+	return total;
 }
 
 /*
