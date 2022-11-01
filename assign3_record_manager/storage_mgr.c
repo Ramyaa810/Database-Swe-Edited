@@ -230,7 +230,7 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 	// if (!checkValidSeek(resultOfSeek))
 	// 	return RC_ERROR;
 
-	fseek(fHandle->mgmtInfo, PAGE_SIZE * pageNum, SEEK_SET);
+	fseek(fHandle->mgmtInfo, (pageNum+1) *PAGE_SIZE, SEEK_SET);
 	
 	//File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
 	// resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
