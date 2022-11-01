@@ -258,44 +258,37 @@ RC openTable(RM_TableData *rel, char *name)
 	return RC_OK;
 }
 
-/*
- * Function: closeTable
- * ---------------------------
- * The table is closed after all the operations are completed.
- * All the memory allocations are de-allocated to avoid memory leaks.
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- *
- * returns : RC_OK after all memory allocations are de-allocated and table is closed.
- */
+void freeAttr(RecordManager *recordManager, RM_TableData *rel)
+{	
+	char *attrName = rel->schema->attrNames;
+	DataType *dataType = rel->schema->dataTypes;
+	int *keyAttrs = rel->schema->keyAttrs;
+	int *typeLength = rel->schema->typeLength;
+	free(recordManager);
+	free(attrName);
+	free(dataType);
+	free(keyAttrs);
+	free(typeLength);
+}
+
 RC closeTable(RM_TableData *rel)
 {
 	printf("close table is started\n");
-	printf(" Entered close Table \n");
-	RecordManager *rmgmt = (RecordManager *)malloc(sizeof(RecordManager));
-	rmgmt = rel->mgmtData;
-	shutdownBufferPool(rmgmt->bm);
-	free(rmgmt);
-	free(rel->schema->attrNames);
-	free(rel->schema->dataTypes);
-	free(rel->schema->keyAttrs);
-	free(rel->schema->typeLength);
+	RecordManager *recordManager = createRecordManagerObject();
+	//(RecordManager *)malloc(sizeof(RecordManager));
+	recordManager = rel->mgmtData;
+	shutdownBufferPool(recordManager->bm);
+	freeAttr(recordManager, rel);
+	// free(recordManager);
+	// free(rel->schema->attrNames);
+	// free(rel->schema->dataTypes);
+	// free(rel->schema->keyAttrs);
+	// free(rel->schema->typeLength);
 
 	free(rel->schema);
 	printf("close table is ended\n");
 	return RC_OK;
 }
-
-/*
- * Function: deleteTable
- * ---------------------------
- * This function deletes the table using destroyPageFile function from buffermanager.
- *
- * name: Name of the relation/table.
- *
- * returns : RC_OK if destroy pagefile is successful.
- *					RC_FILE_NOT_FOUND if file is pagefile is not found.
- */
 
 RC deleteTable(char *name)
 {
@@ -310,16 +303,6 @@ Record *createRecordObject()
 	Record *record = (Record *)malloc(sizeof(Record));
 	return record;
 }
-
-/*
- * Function: getNumTuples
- * ---------------------------
- * This function is used to get number of tuples/rows in the table.
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- *
- * returns : RC_OK if destroy getRecord is successful.
- */
 
 int getNumTuples(RM_TableData *rel)
 {
@@ -341,21 +324,6 @@ int getNumTuples(RM_TableData *rel)
 			ridValue.slot = 0;
 		}
 	}
-	// while (rid.page > 0 && rid.page < totalNumberOfPages)
-	// {
-	// 	flagGetRecord = getRecord(rel, rid, record);
-	// 	if (flagGetRecord != RC_OK)
-	// 	{
-	// 		printf("Get records failed!");
-	// 	}
-	// 	else
-	// 	{
-	// 		count += 1;
-	// 		rid.page += 1;
-	// 		rid.slot = 0;
-	// 	}
-	// }
-
 	record = NULL;
 	free(record);
 	return total;
