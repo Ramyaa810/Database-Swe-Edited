@@ -247,19 +247,16 @@ RC appendEmptyBlock(SM_FileHandle* fHandle)
 // 2. If there are more pages in memory, then write to the disk 1 empty file.
 */
 RC ensureCapacity (int numberOfPages , SM_FileHandle * fHandle ) {
-	int totalPage = fHandle->totalNumPages;
-	// pages in memory differs from pages in disk
-    if(numberOfPages > totalPage) {
-		// create pages until # of pages in memory and disk equal
-        while(numberOfPages > fHandle->totalNumPages) {
-            appendEmptyBlock (fHandle);
-        }
-        return RC_OK;
-    
-    } else {
-		// Pages in memory = pages in disk
-        return RC_OK;
-    }
+	// Validation	
+	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+
+	// Action
+	int itr = 0;
+	for (itr = fHandle->totalNumPages; itr < numberOfPages; ++itr) {
+		appendEmptyBlock(fHandle);
+	}
+	return RC_OK;
 }
 
 
