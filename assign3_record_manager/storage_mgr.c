@@ -238,9 +238,9 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 	// 	return RC_READ_FAILED;
 
 		fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
-
+fHandle->curPagePos = pageNum;
 	//Sets the page number to the current page postion in fHandle
-	setCurrentPosition(pageNum, fHandle);
+	//setCurrentPosition(pageNum, fHandle);
 
 	//return RC_OK code if the able to read the file without any exception
 	return RC_OK;
