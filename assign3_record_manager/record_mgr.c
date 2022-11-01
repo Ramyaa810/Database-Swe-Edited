@@ -240,7 +240,7 @@ RC openTable(RM_TableData *rel, char *name)
 	// fgets(readHeader, PAGE_SIZE, file);
 	// char *totalPage;
 	// totalPage = readHeader;
-	char *totalPage = readHeader(name);
+	char *totalPage = readHeader(*name);
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
