@@ -234,13 +234,12 @@ RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
-	// FILE *file = fopen(name, "r+");
-	// char *readHeader;
-	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	// fgets(readHeader, PAGE_SIZE, file);
-	// char *totalPage;
-	// totalPage = readHeader;
-	char *totalPage = readHeader(name);
+	FILE *file = fopen(name, "r+");
+	char *readHeader;
+	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	fgets(readHeader, PAGE_SIZE, file);
+	char *totalPage;
+	totalPage = readHeader;	
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
@@ -301,16 +300,8 @@ RC closeTable(RM_TableData *rel)
 RC deleteTable(char *name)
 {
 	printf("delete table is started\n");
-	printf("Entered Delete ");
 	RC destroyFlag = destroyPageFile(name);
-	if (destroyFlag == RC_OK)
-	{
-		return RC_OK;
-	}
-	else
-	{
-		return RC_FILE_NOT_FOUND;
-	}
+	return destroyFlag != RC_OK ? RC_FILE_NOT_FOUND : RC_OK;	
 	printf("delete table is ended\n");
 }
 
