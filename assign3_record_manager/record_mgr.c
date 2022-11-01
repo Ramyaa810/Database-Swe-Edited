@@ -232,13 +232,13 @@ RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
-	// FILE *file = fopen(name, "r+");
-	// char *readHeader;
-	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	// fgets(readHeader, PAGE_SIZE, file);
-	// char *totalPage;
-	//totalPage = readHeader(name);
-	totalNumberOfPages = atoi(readHeader(name));
+	FILE *file = fopen(name, "r+");
+	char *readHeader;
+	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	fgets(readHeader, PAGE_SIZE, file);
+	char *totalPage;
+	totalPage = readHeader;
+	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
 	// Make a Page Handle
