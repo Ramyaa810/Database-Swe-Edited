@@ -66,24 +66,23 @@ RC createPageFile (char *fileName)
 */
 RC openPageFile (char *fileName, SM_FileHandle *fHandle)
 {
-	FILE *fp;
-	if (fp = fopen(fileName, "r+")) {//case file exists
-
-
-	// Seek to end so ftell reads correct number of char
-	fseek(fp, 0, SEEK_END);
-	
-
-	//initializing the attributes
-	(*fHandle).fileName = fileName; 
-	(*fHandle).curPagePos = 0;
-	(*fHandle).mgmtInfo = fp;
-	(*fHandle).totalNumPages = ftell(fp)/PAGE_SIZE;
-	// return back to beginning of file since ftell complete
-	fseek(fp, 0, SEEK_SET);
-	return RC_OK;
-	} else { //case file doesnt exist
+	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	FILE *fptr = fopen(fileName, "r+");
+	if(fptr==NULL)
+	{
 		return RC_FILE_NOT_FOUND;
+	}
+	else
+	{
+		fHandle->fileName = fileName;
+		char* readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
+		fgets(readHeader,PAGE_SIZE,fptr);
+		char* totalPage = readHeader;
+		fHandle->totalNumPages = atoi(totalPage);
+		fHandle->curPagePos = 0;
+		fHandle->mgmtInfo = fptr;
+		free(readHeader);
+		return RC_OK;
 	}
 }
 
@@ -101,12 +100,11 @@ RC openPageFile (char *fileName, SM_FileHandle *fHandle)
 
 RC closePageFile (SM_FileHandle *fHandle)
 {
-	// Validation
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-
-	// Action
+//closes the file and returns 0
 	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
+	else //case it doesnt exist
+		return RC_FILE_NOT_FOUND;	
 }
 
 /*
