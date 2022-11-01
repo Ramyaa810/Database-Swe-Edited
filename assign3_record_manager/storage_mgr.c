@@ -288,11 +288,16 @@ int getBlockPos (SM_FileHandle *fHandle)
 RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 
-	RC flag = readBlock(0,fHandle,memPage);
-	if(flag != RC_OK)
-		return RC_READ_NON_EXISTING_PAGE;
-	else
-		return RC_OK;
+int firstPageNumber = 0;
+	if (checkValidfHandle(fHandle))
+	{
+		if (checkValidMgmtInfo(fHandle))
+		{
+			//first page position is sent to the read block and read into the memory
+			return readBlock(firstPageNumber, fHandle, memPage);
+		}
+	}
+	return RC_OK;
 }
 
 /*
