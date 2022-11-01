@@ -51,6 +51,7 @@ SM_PageHandle getEmptyPageHandle()
 RC createPageFile (char *fileName)
 {
 	char *firstPage, *headerPage;
+	//fopen function, returns a FILE pointer and opens file
 	FILE *fptr = fopen(fileName, "w");
 	if(fptr==NULL)
 	{
@@ -85,10 +86,12 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 	FILE *fptr = fopen(fileName, "r+");
 	if(fptr==NULL)
 	{
+		//case file doesnt exist
 		return RC_FILE_NOT_FOUND;
 	}
 	else
 	{
+		//initializing the attributes
 		fHandle->fileName = fileName;
 		char* readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
 		fgets(readHeader,PAGE_SIZE,fptr);
@@ -115,13 +118,11 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 
 RC closePageFile (SM_FileHandle *fHandle)
 {
-	
-	// Validation
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-
-	// Action
+	//closes the file and returns 0
 	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
+	else //case it doesnt exist
+		return RC_FILE_NOT_FOUND;
 }
 
 //destroying the page file
@@ -228,7 +229,18 @@ void fileSeekOperation(SM_PageHandle emptyPage, char * fn)
 */
 RC appendEmptyBlock(SM_FileHandle* fHandle)
 {
-// Validation
+	if(!checkValidfHandle(fHandle))
+		return RC_FILE_HANDLE_NOT_INIT;
+	if(!checkValidMgmtInfo(fHandle))
+		return RC_FILE_NOT_FOUND;
+
+	char *fn = fHandle->fileName;
+	SM_PageHandle emptyPage = getEmptyPageHandle();
+	fileSeekOperation(emptyPage,fn);
+	assignFileHandle(fHandle, fn, fHandle->mgmtInfo);
+	return RC_OK;
+
+	// Validation
 	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
 	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
 
