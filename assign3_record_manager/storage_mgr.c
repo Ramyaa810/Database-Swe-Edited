@@ -119,7 +119,7 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 RC closePageFile (SM_FileHandle *fHandle)
 {
 	//closes the file and returns 0
-	if (fclose(fHandle->mgmtInfo) == 0)
+	if (fHandle->mgmtInfo != NULL && fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
 	else //case it doesnt exist
 		return RC_FILE_NOT_FOUND;
