@@ -269,6 +269,7 @@ void freeAttr(RecordManager *recordManager, RM_TableData *rel)
 	free(dataType);
 	free(keyAttrs);
 	free(typeLength);
+	free(rel->schema);
 }
 
 RC closeTable(RM_TableData *rel)
@@ -279,13 +280,6 @@ RC closeTable(RM_TableData *rel)
 	recordManager = rel->mgmtData;
 	shutdownBufferPool(recordManager->bm);
 	freeAttr(recordManager, rel);
-	// free(recordManager);
-	// free(rel->schema->attrNames);
-	// free(rel->schema->dataTypes);
-	// free(rel->schema->keyAttrs);
-	// free(rel->schema->typeLength);
-
-	free(rel->schema);
 	printf("close table is ended\n");
 	return RC_OK;
 }
