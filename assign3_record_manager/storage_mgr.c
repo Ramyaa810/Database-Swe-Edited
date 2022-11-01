@@ -31,24 +31,20 @@ void initStorageManager (void)
 */
 RC createPageFile (char *fileName)
 {
-	char *firstPage, *headerPage;
-	FILE *fptr = fopen(fileName, "w");
-	if(fptr==NULL)
-	{
-		return RC_FILE_NOT_FOUND;
-	}
-	else
-		{
-			firstPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-			headerPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-			fputs("1",fptr);
-			fwrite(headerPage, PAGE_SIZE, 1, fptr);
-			fwrite(firstPage, PAGE_SIZE, 1, fptr);
-			free(headerPage);
-			free(firstPage);
-			fclose(fptr);
-			return RC_OK;
-		}
+	FILE *fp;
+	int i;
+	SM_PageHandle newBlock[PAGE_SIZE];
+
+	fp = fopen(fileName, "w");
+	//fopen function, returns a FILE pointer and opens file
+	// The apendBlock function, but we don't have fHandle to pass through
+	for(i=0;i<PAGE_SIZE;i++) { //simple for loop to make block space for leng of pagesize
+        newBlock[i] = '\0';
+    }
+	fwrite(newBlock, 1, PAGE_SIZE, fp); //writes where new block space is free
+	
+	fclose(fp); //closes file
+	return RC_OK;
 }
 
 /*
