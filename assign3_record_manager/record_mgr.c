@@ -124,7 +124,7 @@ RC SetOffAttrValue(Schema *schema, int attrNum, int *result)
 
 RC initRecordManager(void *mgmtData)
 {
-	printf("Initializing record manager done!\n");
+	printf("Initializing record manager completed!\n");
 	return RC_OK;
 }
 
@@ -138,10 +138,30 @@ RC initRecordManager(void *mgmtData)
  */
 RC shutdownRecordManager()
 {
-	printf("Shutdown of record manager done!\n");
+	printf("Shutdown of record manager completed!\n");
 	return RC_OK;
 }
 
+RC returnCreatePageFlag(char *name)
+{
+	RC returnCreatePage = createPageFile(name);
+	return returnCreatePage;
+}
+
+RC returnOpenPageFlag(char *name, SM_FileHandle *filehandle)
+{
+	RC returnOpenPage = openPageFile(name, &filehandle);
+	return returnOpenPage;
+}
+
+RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
+{
+	if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
+	{
+		return RC_FILE_NOT_FOUND;
+	}
+	return RC_OK;
+}
 /*
  * Function: createTable
  * ---------------------------
@@ -161,24 +181,26 @@ RC createTable(char *name, Schema *schema)
 {
 	printf("Create table is started\n");
 	SM_FileHandle filehandle;
-	char *serializedData = serializeSchema(schema);
+	char *info = serializeSchema(schema);
 	int i;
-	for (i = 0; i < sizeof(serializedData); i++)
-	{
-		printf("%c ", serializedData[i]);
-	}
+	int length = sizeof(info);
+	// for (i = 0; i < length; i++)
+	// {
+	// 	printf("%c ", info[i]);
+	// }
 
-	RM_TableDetail *tableInfo = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
+	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
 
-	RC createPageFlag = createPageFile(name);
-	RC openPageFlag = openPageFile(name, &filehandle);
-	if (createPageFlag != RC_OK || openPageFlag != RC_OK)
-	{
-		return RC_FILE_NOT_FOUND;
-	}
+	RC returnCreatePage = returnCreatePageFlag(name);
+	RC returnOpenPage = returnOpenPageFlag(name, &filehandle);
+	checkIfFileExist(returnCreatePage,returnOpenPage);
+	// if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
+	// {
+	// 	return RC_FILE_NOT_FOUND;
+	// }
 
-	tableInfo->schemaSize = 0;
-	RC writeflag = writeBlock(0, &filehandle, serializedData);
+	tableDetail->schemaSize = 0;
+	RC writeflag = writeBlock(0, &filehandle, info);
 	if (writeflag != RC_OK)
 	{
 		return RC_WRITE_FAILED;
