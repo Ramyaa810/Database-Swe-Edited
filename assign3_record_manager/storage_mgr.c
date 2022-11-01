@@ -334,13 +334,10 @@ RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	int currentPosValue = getBlockPos(fHandle);
 
-	RC flag = readBlock(getBlockPos(fHandle),fHandle,memPage);
-	if(flag != RC_OK)
-		return RC_READ_NON_EXISTING_PAGE;
-	else
-		return RC_OK;
+	//gets the current position using getBlockPos method and sent tot he readblock to load the current page to the memory
+	return readBlock(currentPosValue, fHandle, memPage);
 }
 
 /*
