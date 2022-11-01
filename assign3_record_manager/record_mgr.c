@@ -11,25 +11,24 @@
 // Record Manager Struct.
 typedef struct RecordManager
 {
-	int *freePages;
 	BM_BufferPool *bm;
+	int *freePages;
 } RecordManager;
 
 // Table Details Struct.
 typedef struct RM_TableDetail
 {
-
-	int schemaSize;
 	int numOfTuples;
+	int schemaSize;
 } RM_TableDetail;
 
 // Scan Manager Struct.
 typedef struct RM_ScanManager
 {
-	Record *currentRecord;
-	int currentPage;
 	int currentSlot;
 	Expr *condn;
+	Record *currentRecord;
+	int currentPage;
 } RM_ScanManager;
 
 int totalNumberOfPages;
@@ -162,6 +161,12 @@ RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 	}
 	return RC_OK;
 }
+
+RM_TableDetail*  initTableDetail()
+{	
+	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
+	return tableDetail;
+}
 /*
  * Function: createTable
  * ---------------------------
@@ -183,7 +188,8 @@ RC createTable(char *name, Schema *schema)
 	int value = 0;
 	SM_FileHandle filehandle;
 	char *info = serializeSchema(schema);
-	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
+
+	RM_TableDetail *tableDetail = initTableDetail();
 
 	RC returnCreatePage = createPageFile(name);
 	RC returnOpenPage = openPageFile(name, &filehandle);
@@ -192,15 +198,7 @@ RC createTable(char *name, Schema *schema)
 	tableDetail->schemaSize = value;
 	RC writeflag = writeBlock(value, &filehandle, info);
 	return (writeflag == RC_OK) ?  RC_OK : RC_WRITE_FAILED;
-	// {
-	// 	return RC_OK;
-	// }
-	// else
-	// {
-	// 	return RC_WRITE_FAILED;
-	// }
 	printf("Create table is ended\n");
-	// return RC_OK;
 }
 
 /*
