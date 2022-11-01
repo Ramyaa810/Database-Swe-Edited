@@ -65,7 +65,6 @@ void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
 
 void updatePageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
-	//BM_BufferPool *bm = ((RecordManager *)rel->mgmtData)->bm;
 	markDirtyInfo(rel, page);
 	unpinPageInfo(rel, page);
 	forcePageInfo(rel, page);
@@ -85,31 +84,32 @@ void updatePageInfo(RM_TableData *rel, BM_PageHandle *page)
  *
  */
 
-RC attrOffset(Schema *schema, int attrNum, int *result)
+RC SetOffAttrValue(Schema *schema, int attrNum, int *result)
 {
-	int offset = 0;
-	int attrPosition = 0;
+	int value = 0;
+	int offValue = value;
+	int pos = value;
 
-	for (attrPosition = 0; attrPosition < attrNum; attrPosition++)
+	for (pos = 0; pos < attrNum; pos++)
 	{
-		switch (schema->dataTypes[attrPosition])
+		if (schema->dataTypes[pos] == DT_INT)
 		{
-		case DT_STRING:
-			offset += schema->typeLength[attrPosition];
-			break;
-		case DT_INT:
-			offset += sizeof(int);
-			break;
-		case DT_FLOAT:
-			offset += sizeof(float);
-			break;
-		case DT_BOOL:
-			offset += sizeof(bool);
-			break;
+			offValue += sizeof(int);
+		}
+		else if (schema->dataTypes[pos] == DT_BOOL)
+		{
+			offValue += sizeof(bool);
+		}
+		else if (schema->dataTypes[pos] == DT_STRING)
+		{
+			offValue += schema->typeLength[pos];
+		}
+		else if (schema->dataTypes[pos] == DT_FLOAT)
+		{
+			offValue += sizeof(float);
 		}
 	}
-
-	*result = offset;
+	*result = offValue;
 	return RC_OK;
 }
 
@@ -805,7 +805,7 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 	*val = (Value *)malloc(sizeof(Value));
 
 	// calculate the offset, to get the attribute value from
-	attrOffset(schema, attrNum, &offset);
+	SetOffAttrValue(schema, attrNum, &offset);
 	attrData = record->data + offset;
 
 	(*val)->dt = schema->dataTypes[attrNum];
@@ -855,7 +855,7 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 	char *attrData;
 
 	// offset values
-	attrOffset(schema, attrNum, &offset);
+	SetOffAttrValue(schema, attrNum, &offset);
 	attrData = record->data + offset;
 
 	// Attributes datatype value
