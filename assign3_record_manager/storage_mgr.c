@@ -51,7 +51,6 @@ SM_PageHandle getEmptyPageHandle()
 RC createPageFile (char *fileName)
 {
 	char *firstPage, *headerPage;
-	//fopen function, returns a FILE pointer and opens file
 	FILE *fptr = fopen(fileName, "w");
 	if(fptr==NULL)
 	{
@@ -86,12 +85,10 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 	FILE *fptr = fopen(fileName, "r+");
 	if(fptr==NULL)
 	{
-		//case file doesnt exist
 		return RC_FILE_NOT_FOUND;
 	}
 	else
 	{
-		//initializing the attributes
 		fHandle->fileName = fileName;
 		char* readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
 		fgets(readHeader,PAGE_SIZE,fptr);
@@ -118,6 +115,7 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 
 RC closePageFile (SM_FileHandle *fHandle)
 {
+	
 	// Validation
 	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
 
