@@ -208,7 +208,7 @@ RC createTable(char *name, Schema *schema)
 	printf("Create table is ended\n");
 }
 
-char* readHeader(const char * name)
+char* readHeader(char * name)
 {
 	char *readHeader;	
 	char * totalPage;
