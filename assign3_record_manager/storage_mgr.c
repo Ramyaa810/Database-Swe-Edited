@@ -226,9 +226,11 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 		return RC_FILE_NOT_FOUND;
 
 	//File seek is performed on the file with page number and returns error if the seek result is not valid
-	resultOfSeek = fseek(fHandle->mgmtInfo, PAGE_SIZE * pageNum, SEEK_SET);
-	if (!checkValidSeek(resultOfSeek))
-		return RC_ERROR;
+	// resultOfSeek = fseek(fHandle->mgmtInfo, PAGE_SIZE * pageNum, SEEK_SET);
+	// if (!checkValidSeek(resultOfSeek))
+	// 	return RC_ERROR;
+
+	fseek(fHandle->mgmtInfo, PAGE_SIZE * pageNum, SEEK_SET);
 	
 	//File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
 	resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
