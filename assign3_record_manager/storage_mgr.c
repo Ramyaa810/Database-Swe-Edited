@@ -149,7 +149,7 @@ RC writeBlock (int pageNum , SM_FileHandle * fHandle , SM_PageHandle memPage ) {
     if(pageNum < fHandle->totalNumPages) {
 		int increPageNum = pageNum+1;
         fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
-        fwrite(memPage, 1, PAGE_SIZE, fHandle->mgmtInfo);
+        fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
         // Updates current page number to recently written file.
         fHandle->curPagePos = pageNum;
     } 
