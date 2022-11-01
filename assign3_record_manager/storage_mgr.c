@@ -187,6 +187,28 @@ void setCurrentPosition(int pageNumber, SM_FileHandle *fHandle)
 	fHandle->curPagePos = pageNumber;
 }
 
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the given FileHandle is valid and not NULL
+2. If Null, it will return false
+3.If not Null, it will retrun true
+*/
+bool checkValidfHandle(SM_FileHandle *fHandle)
+{
+	return (fHandle == NULL) ? false : true;
+}
+
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the given Management Info is valid and not NULL
+2. If NULL, it will return false
+3.If Not Null, it will retrun true
+*/
+bool checkValidMgmtInfo(SM_FileHandle *fHandle)
+{
+	return (fHandle->mgmtInfo == NULL) ? false : true;
+}
+
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int resultOfSeek, resultOfRead, totalNumberOfPagesInTheFile;
@@ -396,28 +418,6 @@ RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 	if (fHandle->curPagePos > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
 
 	return writeBlock(getBlockPos(fHandle),fHandle,memPage);
-}
-
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method checks if the given FileHandle is valid and not NULL
-2. If Null, it will return false
-3.If not Null, it will retrun true
-*/
-bool checkValidfHandle(SM_FileHandle *fHandle)
-{
-	return (fHandle == NULL) ? false : true;
-}
-
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method checks if the given Management Info is valid and not NULL
-2. If NULL, it will return false
-3.If Not Null, it will retrun true
-*/
-bool checkValidMgmtInfo(SM_FileHandle *fHandle)
-{
-	return (fHandle->mgmtInfo == NULL) ? false : true;
 }
 
 /*
