@@ -231,9 +231,10 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 		return RC_ERROR;
 	
 	//File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
-	resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
-	if (!checkValidRead(resultOfRead))
-		return RC_READ_FAILED;
+	fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
+	// resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
+	// if (!checkValidRead(resultOfRead))
+	// 	return RC_READ_FAILED;
 
 	//Sets the page number to the current page postion in fHandle
 	setCurrentPosition(pageNum, fHandle);
