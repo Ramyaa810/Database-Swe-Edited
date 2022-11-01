@@ -196,7 +196,7 @@ RC createTable(char *name, Schema *schema)
 	SM_FileHandle filehandle;
 	char *info = serializeSchema(schema);
 
-	RM_TableDetail *tableDetail = initTableDetail();
+	RM_TableDetail *tableDetail = createTableDetailObject();
 
 	RC returnCreatePage = createPageFile(name);
 	RC returnOpenPage = openPageFile(name, &filehandle);
