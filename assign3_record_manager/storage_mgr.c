@@ -146,27 +146,27 @@ RC writeBlock (int pageNum , SM_FileHandle * fHandle , SM_PageHandle memPage ) {
 
 
     // If the page you're looking for exists, seek to the page and write.
-    if(pageNum < fHandle->totalNumPages) {
-		int increPageNum = pageNum+1;
-        fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
-        fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
-        // Updates current page number to recently written file.
-        fHandle->curPagePos = pageNum;
-    } 
-	else {
-		// append block
-        appendEmptyBlock(fHandle);
-    }
-return RC_OK;
+//     if(pageNum < fHandle->totalNumPages) {
+// 		int increPageNum = pageNum+1;
+//         fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
+//         fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
+//         // Updates current page number to recently written file.
+//         fHandle->curPagePos = pageNum;
+//     } 
+// 	else {
+// 		// append block
+//         appendEmptyBlock(fHandle);
+//     }
+// return RC_OK;
 
-	// if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	// if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-	// if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
+	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+	if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
 
-	// fseek(fHandle->mgmtInfo,(pageNum+1)*PAGE_SIZE,SEEK_SET);
-	// fwrite(memPage,PAGE_SIZE,1,fHandle->mgmtInfo);
-	// fHandle->curPagePos = pageNum;
-	// return RC_OK;
+	fseek(fHandle->mgmtInfo,(pageNum+1)*PAGE_SIZE,SEEK_SET);
+	fwrite(memPage,PAGE_SIZE,1,fHandle->mgmtInfo);
+	fHandle->curPagePos = pageNum;
+	return RC_OK;
 }
 
 /*
