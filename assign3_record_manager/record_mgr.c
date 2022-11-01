@@ -162,11 +162,18 @@ RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 	return RC_OK;
 }
 
-RM_TableDetail*  initTableDetail()
+RM_TableDetail*  createTableDetailObject()
 {	
 	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
 	return tableDetail;
 }
+
+RecordManager*  createRecordManagerObject()
+{	
+	RecordManager *recordManager = (RecordManager *)malloc(sizeof(RecordManager));
+	return recordManager;
+}
+
 /*
  * Function: createTable
  * ---------------------------
@@ -201,6 +208,15 @@ RC createTable(char *name, Schema *schema)
 	printf("Create table is ended\n");
 }
 
+char* readHeader(const char * name)
+{
+	char *readHeader;	
+	FILE *file = fopen(name, "r+");
+	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	fgets(readHeader, PAGE_SIZE, file);
+	return readHeader;
+}
+
 /*
  * Function: openTable
  * ---------------------------
@@ -215,25 +231,25 @@ RC createTable(char *name, Schema *schema)
 RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
-	RecordManager *rm_mgmt = (RecordManager *)malloc(sizeof(RecordManager));
-	FILE *fptr = fopen(name, "r+");
-	char *readHeader;
-	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	fgets(readHeader, PAGE_SIZE, fptr);
-	char *totalPage;
-	totalPage = readHeader;
-	totalNumberOfPages = atoi(totalPage);
-	rm_mgmt->bm = MAKE_POOL();
+	RecordManager *recordManager = createRecordManagerObject();
+	// FILE *file = fopen(name, "r+");
+	// char *readHeader;
+	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	// fgets(readHeader, PAGE_SIZE, file);
+	// char *totalPage;
+	//totalPage = readHeader(name);
+	totalNumberOfPages = atoi(readHeader(name));
+	recordManager->bm = MAKE_POOL();
 
 	// Make a Page Handle
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	initBufferPool(rm_mgmt->bm, name, 6, RS_FIFO, NULL);
-	pinPage(rm_mgmt->bm, page, 0);
-	rm_mgmt->freePages = (int *)malloc(sizeof(int));
-	rm_mgmt->freePages[0] = totalNumberOfPages;
+	initBufferPool(recordManager->bm, name, 6, RS_FIFO, NULL);
+	pinPage(recordManager->bm, page, 0);
+	recordManager->freePages = (int *)malloc(sizeof(int));
+	recordManager->freePages[0] = totalNumberOfPages;
 	rel->schema = deserializeSchema(page->data);
 	rel->name = name;
-	rel->mgmtData = rm_mgmt;
+	rel->mgmtData = recordManager;
 	free(readHeader);
 	free(page);
 	printf("Open table is ended\n");
