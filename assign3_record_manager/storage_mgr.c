@@ -211,36 +211,15 @@ bool checkValidMgmtInfo(SM_FileHandle *fHandle)
 
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	int resultOfSeek, resultOfRead, totalNumberOfPagesInTheFile;
-	totalNumberOfPagesInTheFile = fHandle->totalNumPages;
-	//Checks if the fhandle is valid and returns error code if its not initialized
-	if (!checkValidfHandle(fHandle))
-		return RC_FILE_HANDLE_NOT_INIT;
-		
-	//Checks if the input page number is valid and returns error code if its not exist
-	if (!checkValidPageNumber(pageNum, totalNumberOfPagesInTheFile))
-		return RC_READ_NON_EXISTING_PAGE;
-
-	//Checks if the management info is valid and returns error code if its not exist
-	if (!checkValidMgmtInfo(fHandle))
-		return RC_FILE_NOT_FOUND;
-
-	//File seek is performed on the file with page number and returns error if the seek result is not valid
-	resultOfSeek = fseek(fHandle->mgmtInfo, PAGE_SIZE * pageNum, SEEK_SET);
-	if (!checkValidSeek)
-		return RC_ERROR;
-	
-	//File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
-	fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
-	// resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
-	// if (!checkValidRead(resultOfRead))
-	// 	return RC_READ_FAILED;
-
-	//Sets the page number to the current page postion in fHandle
-	setCurrentPosition(pageNum, fHandle);
-
-	//return RC_OK code if the able to read the file without any exception
-	return RC_OK;
+	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+	if (pageNum < 0 || pageNum > fHandle->totalNumPages-1) return RC_READ_NON_EXISTING_PAGE;
+	if(!fseek(fHandle->mgmtInfo,(pageNum+1)*PAGE_SIZE,SEEK_SET))
+	{
+		fread(memPage,sizeof(char),PAGE_SIZE,fHandle->mgmtInfo);
+		fHandle->curPagePos = pageNum;
+		return RC_OK;
+	}
 }
 
 /*
