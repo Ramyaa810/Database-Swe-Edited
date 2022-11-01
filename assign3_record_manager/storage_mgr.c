@@ -354,12 +354,10 @@ RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	RC flag = readBlock(getBlockPos(fHandle)+1,fHandle,memPage);
-	if(flag != RC_OK)
-		return RC_READ_NON_EXISTING_PAGE;
-	else
-		return RC_OK;
+	int currentPosValue = getBlockPos(fHandle);
+
+	//gets the current page position using getBlockPos method and added one to read the next page to the memory
+	return readBlock(currentPosValue + 1, fHandle, memPage);
 }
 
 /*
@@ -376,9 +374,13 @@ RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	RC flag = readBlock(fHandle->totalNumPages - 1,fHandle,memPage);
-	if(flag != RC_OK) return RC_READ_NON_EXISTING_PAGE;
-	else return RC_OK;
+	int lastPageNumber;
+
+	//gets the total number of page from the file handle
+	lastPageNumber = fHandle->totalNumPages;
+
+	//reads the last page position in the file and loads into the memory
+	return readBlock(lastPageNumber - 1, fHandle, memPage);
 }
 
 /*
