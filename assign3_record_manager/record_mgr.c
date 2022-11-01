@@ -142,17 +142,17 @@ RC shutdownRecordManager()
 	return RC_OK;
 }
 
-RC returnCreatePageFlag(char *name)
-{
-	RC returnCreatePage = createPageFile(name);
-	return returnCreatePage;
-}
+// RC returnCreatePageFlag(char *name)
+// {
+// 	RC returnCreatePage = createPageFile(name);
+// 	return returnCreatePage;
+// }
 
-RC returnOpenPageFlag(char *name, SM_FileHandle *filehandle)
-{
-	RC returnOpenPage = openPageFile(name, &filehandle);
-	return returnOpenPage;
-}
+// RC returnOpenPageFlag(char *name, SM_FileHandle *filehandle)
+// {
+// 	RC returnOpenPage = openPageFile(name, &filehandle);
+// 	return returnOpenPage;
+// }
 
 RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 {
@@ -191,8 +191,8 @@ RC createTable(char *name, Schema *schema)
 
 	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
 
-	RC returnCreatePage = returnCreatePageFlag(name);
-	RC returnOpenPage = returnOpenPageFlag(name, &filehandle);
+	RC returnCreatePage = createPageFile(name);
+	RC returnOpenPage = openPageFile(name, &filehandle);
 	checkIfFileExist(returnCreatePage,returnOpenPage);
 	// if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
 	// {
