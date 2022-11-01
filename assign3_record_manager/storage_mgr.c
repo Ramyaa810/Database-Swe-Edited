@@ -300,18 +300,14 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-// If the page you're looking for exists, seek to the page and write.
-    if(pageNum < fHandle->totalNumPages) {
-        fseek(fHandle->mgmtInfo, (pageNum * PAGE_SIZE), SEEK_SET);
-        fwrite(memPage, 1, PAGE_SIZE, fHandle->mgmtInfo);
-        // Updates current page number to recently written file.
-        fHandle->curPagePos = pageNum;
-    } 
-	else {
-		// append block
-        appendEmptyBlock(fHandle);
-    }
-return RC_OK;
+	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+	if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
+
+	fseek(fHandle->mgmtInfo,(pageNum+1)*PAGE_SIZE,SEEK_SET);
+	fwrite(memPage,PAGE_SIZE,1,fHandle->mgmtInfo);
+	fHandle->curPagePos = pageNum;
+	return RC_OK;
 
 }
 
