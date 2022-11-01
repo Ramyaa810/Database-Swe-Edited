@@ -180,33 +180,27 @@ RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 RC createTable(char *name, Schema *schema)
 {
 	printf("Create table is started\n");
+	int value = 0;
 	SM_FileHandle filehandle;
 	char *info = serializeSchema(schema);
-	int i;
-	int length = sizeof(info);
-	// for (i = 0; i < length; i++)
-	// {
-	// 	printf("%c ", info[i]);
-	// }
-
 	RM_TableDetail *tableDetail = (RM_TableDetail *)malloc(sizeof(RM_TableDetail));
 
 	RC returnCreatePage = createPageFile(name);
 	RC returnOpenPage = openPageFile(name, &filehandle);
-	checkIfFileExist(returnCreatePage,returnOpenPage);
-	// if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
-	// {
-	// 	return RC_FILE_NOT_FOUND;
-	// }
+	checkIfFileExist(returnCreatePage, returnOpenPage);
 
-	tableDetail->schemaSize = 0;
-	RC writeflag = writeBlock(0, &filehandle, info);
-	if (writeflag != RC_OK)
-	{
-		return RC_WRITE_FAILED;
-	}
+	tableDetail->schemaSize = value;
+	RC writeflag = writeBlock(value, &filehandle, info);
+	return (writeflag == RC_OK) ?  RC_OK : RC_WRITE_FAILED;
+	// {
+	// 	return RC_OK;
+	// }
+	// else
+	// {
+	// 	return RC_WRITE_FAILED;
+	// }
 	printf("Create table is ended\n");
-	return RC_OK;
+	// return RC_OK;
 }
 
 /*
