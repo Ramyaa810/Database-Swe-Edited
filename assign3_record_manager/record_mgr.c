@@ -192,7 +192,7 @@ RecordManager *createRecordManagerObject()
 RC createTable(char *name, Schema *schema)
 {
 	printf("Create table is started\n");
-	int value = 0;
+	int zero = 0;
 	SM_FileHandle filehandle;
 	char *info = serializeSchema(schema);
 
@@ -202,13 +202,13 @@ RC createTable(char *name, Schema *schema)
 	RC returnOpenPage = openPageFile(name, &filehandle);
 	checkIfFileExist(returnCreatePage, returnOpenPage);
 
-	tableDetail->schemaSize = value;
-	RC writeflag = writeBlock(value, &filehandle, info);
-	return (writeflag == RC_OK) ? RC_OK : RC_WRITE_FAILED;
+	tableDetail->schemaSize = zero;
+	RC writeflag = writeBlock(zero, &filehandle, info);
 	printf("Create table is ended\n");
+	return (writeflag == RC_OK) ? RC_OK : RC_WRITE_FAILED;
 }
 
-char readHeader(char *name)
+char readHeaderValue(char *name)
 {
 	FILE *file = fopen(name, "r+");
 	char *readHeader;
@@ -234,12 +234,13 @@ RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
-	FILE *file = fopen(name, "r+");
-	char *readHeader;
-	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	fgets(readHeader, PAGE_SIZE, file);
+	// FILE *file = fopen(name, "r+");
+	// char *readHeader;
+	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	// fgets(readHeader, PAGE_SIZE, file);
 	char *totalPage;
-	totalPage = readHeader;
+	totalPage = readHeaderValue(name);
+
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
