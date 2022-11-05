@@ -210,13 +210,24 @@ RC createTable(char *name, Schema *schema)
 
 char readHeaderValue(char *name)
 {
-	FILE *file = fopen(name, "r+");
 	char *readHeader;
+	FILE *file = fopen(name, "r+");
 	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	fgets(readHeader, PAGE_SIZE, file);
+	return readHeader;
+}
+
+char returnTotalPage(char *readHeader)
+{
 	char *totalPage;
 	totalPage = readHeader;
 	return totalPage;
+}
+
+void callInitBufferPool(BM_BufferPool *const bm, char *name)
+{
+	int six = 6;
+	initBufferPool(bm, name, six, RS_FIFO, NULL);
 }
 
 /*
@@ -233,20 +244,19 @@ char readHeaderValue(char *name)
 RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
-	RecordManager *recordManager = createRecordManagerObject();
-	// FILE *file = fopen(name, "r+");
-	// char *readHeader;
-	// readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	// fgets(readHeader, PAGE_SIZE, file);
 	char *totalPage;
-	totalPage = readHeaderValue(name);
+	char *readHeader;
+	RecordManager *recordManager = createRecordManagerObject();
+	readHeader = readHeaderValue(name);
+	totalPage = returnTotalPage(readHeader);
 
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
 
 	// Make a Page Handle
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	initBufferPool(recordManager->bm, name, 6, RS_FIFO, NULL);
+	callInitBufferPool(recordManager->bm,name);
+	//initBufferPool(recordManager->bm, name, 6, RS_FIFO, NULL);
 	pinPage(recordManager->bm, page, 0);
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
@@ -374,11 +384,11 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	pinPage(((RecordManager *)rel->mgmtData)->bm, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
 
 	memset(page->data, '\0', strlen(page->data));
-	//sprintf(page->data, "%s", serializedRecord);
+	// sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
 	free(page);
 	((RecordManager *)rel->mgmtData)->freePages[0] += 1;
-	totalNumberOfPages = totalNumberOfPages+one;
+	totalNumberOfPages = totalNumberOfPages + one;
 	printf("insert record is ended\n");
 	return RC_OK;
 }
@@ -439,26 +449,29 @@ RC deleteRecord(RM_TableData *rel, RID id)
 RC updateRecord(RM_TableData *rel, Record *record)
 {
 	printf("update record is started\n");
-	int zero =0;
-	if(record->id.page>zero)
+	int zero = 0;
+	if (record->id.page > zero)
 	{
-		if(record->id.page < totalNumberOfPages)
+		if (record->id.page < totalNumberOfPages)
 		{
 			BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		int pageNum, slotNum;
-		pageNum = record->id.page;
-		slotNum = record->id.slot;
-		char *record_str = serializeRecord(record, rel->schema);
-		pinPage(((RecordManager *)rel->mgmtData)->bm, page, record->id.page);
-		memset(page->data, '\0', strlen(page->data));
-		sprintf(page->data, "%s", record_str);
-		free(record_str);
-		updatePageInfo(rel, page);
-		free(page);
-		return RC_OK;
+			int pageNum, slotNum;
+			pageNum = record->id.page;
+			slotNum = record->id.slot;
+			char *record_str = serializeRecord(record, rel->schema);
+			pinPage(((RecordManager *)rel->mgmtData)->bm, page, record->id.page);
+			memset(page->data, '\0', strlen(page->data));
+			sprintf(page->data, "%s", record_str);
+			free(record_str);
+			updatePageInfo(rel, page);
+			free(page);
+			return RC_OK;
 		}
-		else return RC_RM_NO_MORE_TUPLES;
-	} else return RC_RM_NO_MORE_TUPLES;
+		else
+			return RC_RM_NO_MORE_TUPLES;
+	}
+	else
+		return RC_RM_NO_MORE_TUPLES;
 	// if (record->id.page <= 0 && record->id.page > totalNumberOfPages)
 	// {
 	// 	return RC_RM_NO_MORE_TUPLES;
