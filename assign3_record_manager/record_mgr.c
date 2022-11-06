@@ -244,7 +244,7 @@ void callInitBufferPool(BM_BufferPool *const bm, char *name)
 RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
-	char *totalPage;
+	//char *totalPage;
 	//char *readHeader;
 	RecordManager *recordManager = createRecordManagerObject();
 	// readHeader = readHeaderValue(name);
