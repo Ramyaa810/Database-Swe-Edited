@@ -502,76 +502,76 @@ RC updateRecord(RM_TableData *rel, Record *record)
 
 RC getRecord(RM_TableData *rel, RID id, Record *record)
 {
-	// printf("get record is started\n");
-	// int zero = 0;
-	// if (id.page > totalNumberOfPages && id.page <= zero)
-	// 	return RC_RM_NO_MORE_TUPLES;
-	// else
-	// {
-	// 	record->id = id;
-	// 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	// 	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
-	// 	int pg = id.page;
-	// 	// pinPage(bufferPool, page, pg);
-	// 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
-	// 	char *dt = page->data;
-	// 	// char *record_data = (char *)malloc(sizeof(char) * strlen(dt));
-	// 	char *record_data = (char *)malloc(sizeof(char) * strlen(page->data));
-	// 	strcpy(record_data, dt);
-	// 	printf("%s get record data: \n", record_data);
-	// 	Schema *schema = rel->schema;
-	// 	// Record *deSerializedRecord = deserializeRecord(record_data, schema);
-	// 	Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
-	// 	unpinPage(bufferPool, page);
-
-	// 	unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
-	// 	record->data = deSerializedRecord->data;
-	// 	if (strncmp(record_data, "DEL", 3) == 0)
-	// 		return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
-	// 	free(deSerializedRecord);
-	// 	free(page);
-	// 	printf("get record is ended\n");
-	// 	return RC_OK;
-
-	// 	// if (strncmp(record_data, "DEL", 3) != 0)
-	// 	// {
-	// 	// 	free(deSerializedRecord);
-	// 	// 	free(page);
-	// 	// 	printf("get record is ended\n");
-	// 	// 	return RC_OK;
-	// 	// }
-	// 	// else
-	// 	// 	return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
-	// }
-	// printf("get record is ended\n");
-
-
-	if(id.page <= 0 && id.page >  totalNumberOfPages)
-	{
+	printf("get record is started\n");
+	int zero = 0;
+	if (id.page > totalNumberOfPages && id.page <= zero)
 		return RC_RM_NO_MORE_TUPLES;
-	}
 	else
 	{
-		BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
-		char *record_data = (char*)malloc(sizeof(char) * strlen(page->data));
-		strcpy(record_data,page->data);
-		printf("%s record data: \n" ,record_data);
-		
-		
 		record->id = id;
-	  Record* deSerializedRecord = deserializeRecord(record_data,rel->schema);
-		unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
+		BM_PageHandle *page = MAKE_PAGE_HANDLE();
+		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
+		int pg = id.page;
+		pinPage(bufferPool, page, pg);
+		//pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
+		char *dt = page->data;
+		 char *record_data = (char *)malloc(sizeof(char) * strlen(dt));
+		//char *record_data = (char *)malloc(sizeof(char) * strlen(page->data));
+		strcpy(record_data, dt);
+		printf("%s get record data: \n", record_data);
+		Schema *schema = rel->schema;
+		// Record *deSerializedRecord = deserializeRecord(record_data, schema);
+		Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
+		unpinPage(bufferPool, page);
+
+		//unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 		record->data = deSerializedRecord->data;
-		if(strncmp(record_data, "DEL", 3) == 0)
+		if (strncmp(record_data, "DEL", 3) == 0)
 			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
 		free(deSerializedRecord);
 		free(page);
-
+		printf("get record is ended\n");
 		return RC_OK;
-	}
 
-	return RC_OK;
+		// if (strncmp(record_data, "DEL", 3) != 0)
+		// {
+		// 	free(deSerializedRecord);
+		// 	free(page);
+		// 	printf("get record is ended\n");
+		// 	return RC_OK;
+		// }
+		// else
+		// 	return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
+	}
+	printf("get record is ended\n");
+
+// int zero = 0;
+// 	if(id.page >  totalNumberOfPages && id.page <= zero)
+// 	{
+// 		return RC_RM_NO_MORE_TUPLES;
+// 	}
+// 	else
+// 	{
+// 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
+// 		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
+// 		char *record_data = (char*)malloc(sizeof(char) * strlen(page->data));
+// 		strcpy(record_data,page->data);
+// 		printf("%s record data: \n" ,record_data);
+		
+		
+// 		record->id = id;
+// 	  Record* deSerializedRecord = deserializeRecord(record_data,rel->schema);
+// 		unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
+// 		record->data = deSerializedRecord->data;
+// 		if(strncmp(record_data, "DEL", 3) == 0)
+// 			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
+// 		free(deSerializedRecord);
+// 		free(page);
+
+// 		return RC_OK;
+// 	}
+
+// 	return RC_OK;
 
 }
 
