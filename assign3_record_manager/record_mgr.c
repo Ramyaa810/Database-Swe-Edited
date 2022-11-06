@@ -61,7 +61,7 @@ void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
  *
  */
 
-void updatePageInfo(RM_TableData *rel, BM_PageHandle *page)
+void ModifyPageDetails(RM_TableData *rel, BM_PageHandle *page)
 {
 	markDirtyInfo(rel, page);
 	unpinPageInfo(rel, page);
@@ -383,17 +383,16 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	record->id.page = freepage;
 	record->id.slot = zero;
 	 Schema *schema = rel->schema;
-	//char *serializedRecord = callSerializeRecord(record, rel);
 	char *serializedRecord = serializeRecord(record, schema);
 	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 	int freepage1 = ((RecordManager *)rel->mgmtData)->freePages[0];
 	pinPage(bufferPool, page, freepage1);
-	memorySet(page->data);
-	 //memset(page->data, '\0', strlen(page->data));
+	char *dt = page->data;
+	memorySet(dt);
 	sprintf(page->data, "%s", serializedRecord);
-	updatePageInfo(rel, page);
+	ModifyPageDetails(rel, page);
 	free(page);
-	((RecordManager *)rel->mgmtData)->freePages[0] += one;
+	((RecordManager *)rel->mgmtData)->freePages[0] = ((RecordManager *)rel->mgmtData)->freePages[0] + one;
 	totalNumberOfPages = totalNumberOfPages + one;
 	printf("insert record is ended\n");
 	return RC_OK;
@@ -427,7 +426,7 @@ RC deleteRecord(RM_TableData *rel, RID id)
 		memset(page->data, '\0', strlen(page->data));
 		sprintf(page->data, "%s", deletedflagstr);
 		printf("deleted record: %s\n", page->data);
-		updatePageInfo(rel, page);
+		ModifyPageDetails(rel, page);
 		page = NULL;
 		free(page);
 		return RC_OK;
@@ -472,7 +471,7 @@ RC updateRecord(RM_TableData *rel, Record *record)
 		memset(page->data, '\0', strlen(page->data));
 		sprintf(page->data, "%s", record_str);
 		free(record_str);
-		updatePageInfo(rel, page);
+		ModifyPageDetails(rel, page);
 		free(page);
 		return RC_OK;
 	}
