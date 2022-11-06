@@ -242,12 +242,19 @@ RC openTable(RM_TableData *rel, char *name)
 	char *readHeader;
 	char *totalPage;
 	RecordManager *recordManager = createRecordManagerObject();
-	FILE *file = fopen(name, "r+");
-	readHeader = CreateReadHeaderObject(name);
-	fgets(readHeader, PAGE_SIZE, file);
-	//totalPage = 
-	totalNumberOfPages = SetTotalPages(readHeader);
+
+	FILE *fptr = fopen(name, "r+");	char* readHeader;
+	readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
+	fgets(readHeader,PAGE_SIZE,fptr);
+	char* totalPage;
+	totalPage = readHeader;
+	totalNumberOfPages = atoi(totalPage);	
 	recordManager->bufferPool = MAKE_POOL();
+	// FILE *file = fopen(name, "r+");
+	// readHeader = CreateReadHeaderObject(name);
+	// fgets(readHeader, PAGE_SIZE, file);
+	// totalNumberOfPages = SetTotalPages(readHeader);
+	//recordManager->bufferPool = MAKE_POOL();
 
 	// Make a Page Handle
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
