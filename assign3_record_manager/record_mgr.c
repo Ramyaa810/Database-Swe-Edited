@@ -460,45 +460,30 @@ RC updateRecord(RM_TableData *rel, Record *record)
 {
 	printf("update record is started\n");
 	printf("record updated: %s\n", record->data);
-	if (record->id.page > 0)
+	int zero = 0;
+	if (record->id.page > totalNumberOfPages && record->id.page <= zero)
+		return RC_RM_NO_MORE_TUPLES;
+	else
 	{
-		if(record->id.page <= totalNumberOfPages)
-		{
-			BM_PageHandle *page = MAKE_PAGE_HANDLE();
-			int pageNum, slotNum;
-			pageNum = record->id.page;
-			slotNum = record->id.slot;
-			char *record_str = serializeRecord(record, rel->schema);
-			pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
-			memset(page->data, '\0', strlen(page->data));
-			sprintf(page->data, "%s", record_str);
-			free(record_str);
-			ModifyPageDetails(rel, page);
-			free(page);
-			return RC_OK;
-		} else return RC_RM_NO_MORE_TUPLES;
-	} else return RC_RM_NO_MORE_TUPLES;
-		// if (record->id.page <= 0 && record->id.page > totalNumberOfPages)
-		// {
-		// 	return RC_RM_NO_MORE_TUPLES;
-		// }
-		// else
-		// {
-		// 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		// 	int pageNum, slotNum;
-		// 	pageNum = record->id.page;
-		// 	slotNum = record->id.slot;
-		// 	char *record_str = serializeRecord(record, rel->schema);
-		// 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
-		// 	memset(page->data, '\0', strlen(page->data));
-		// 	sprintf(page->data, "%s", record_str);
-		// 	free(record_str);
-		// 	ModifyPageDetails(rel, page);
-		// 	free(page);
-		// 	return RC_OK;
-		// }
+		BM_PageHandle *page = MAKE_PAGE_HANDLE();
+		int pageNumber;
+		int slotNumber;
+		pageNumber = record->id.page;
+		slotNumber = record->id.slot;
+		char *record_str = serializeRecord(record, rel->schema);
+		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
+		int pg = record->id.page;
+		pinPage(bufferPool, page, pg);
+		char *dt =page->data;
+		memorySet(dt);
+		//memset(page->data, '\0', strlen(page->data));
+		sprintf(page->data, "%s", record_str);
+		ModifyPageDetails(rel, page);		
+		free(record_str);
+		free(page);
+		return RC_OK;
+	}
 	printf("update record is ended\n");
-	return RC_OK;
 }
 
 /*
