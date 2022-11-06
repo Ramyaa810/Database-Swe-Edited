@@ -292,7 +292,6 @@ RC closeTable(RM_TableData *rel)
 {
 	printf("close table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
-	//(RecordManager *)malloc(sizeof(RecordManager));
 	recordManager = rel->mgmtData;
 	shutdownBufferPool(recordManager->bufferPool);
 	freeAttr(recordManager, rel);
@@ -329,9 +328,9 @@ int getNumTuples(RM_TableData *rel)
 		flagGetRecord = getRecord(rel, ridValue, record);
 		if (flagGetRecord == RC_OK)
 		{
-			total += 1;
-			ridValue.page += 1;
-			ridValue.slot = 0;
+			total += one;
+			ridValue.page += one;
+			ridValue.slot = zero;
 		}
 	}
 	record = NULL;
