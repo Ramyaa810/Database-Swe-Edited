@@ -665,9 +665,14 @@ RC next(RM_ScanHandle *scan, Record *record)
 			}
 		}
 	}
-	RC *code = RC_RM_NO_MORE_TUPLES;
 	((RM_ScanManager *)scan->mgmtData)->currentPage = one;
-	return code;
+	return RC_RM_NO_MORE_TUPLES;
+}
+
+Record *AssignCurrentRecord(RM_ScanHandle *scan)
+{
+	Record *rm = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
+	return rm;
 }
 
 /*
@@ -683,10 +688,8 @@ RC next(RM_ScanHandle *scan, Record *record)
 
 RC closeScan(RM_ScanHandle *scan)
 {
-	// Make all the allocations, NULL and free them
-
 	((RM_ScanManager *)scan->mgmtData)->currentRecord = NULL;
-	free(((RM_ScanManager *)scan->mgmtData)->currentRecord);
+	free(AssignCurrentRecord(scan));
 
 	scan->mgmtData = NULL;
 
