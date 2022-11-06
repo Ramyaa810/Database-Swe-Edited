@@ -793,12 +793,17 @@ DataType *dataTypes, int *typeLength, int keySize, int *keys)
 
 RC freeSchema(Schema *schema)
 {
-	if (schema != NULL)
+	while(schema != NULL)
 	{
-		// Free the schema content
 		free(schema);
-		return RC_OK;
+		break;
 	}
+	return RC_OK;
+	// if (schema != NULL)
+	// {
+	// 	free(schema);
+	// 	return RC_OK;
+	// }
 }
 
 /*
