@@ -245,10 +245,17 @@ RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
 	char *totalPage;
-	char *readHeader;
+	//char *readHeader;
 	RecordManager *recordManager = createRecordManagerObject();
-	readHeader = readHeaderValue(name);
-	totalPage = returnTotalPage(readHeader);
+	// readHeader = readHeaderValue(name);
+	// totalPage = returnTotalPage(readHeader);
+
+
+	FILE *fptr = fopen(name, "r+");	char* readHeader;
+	readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
+	fgets(readHeader,PAGE_SIZE,fptr);
+	char* totalPage;
+	totalPage = readHeader;
 
 	totalNumberOfPages = atoi(totalPage);
 	recordManager->bm = MAKE_POOL();
