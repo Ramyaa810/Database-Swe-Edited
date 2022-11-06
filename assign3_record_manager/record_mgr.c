@@ -259,7 +259,7 @@ RC openTable(RM_TableData *rel, char *name)
 }
 
 void freeAttr(RecordManager *recordManager, RM_TableData *rel)
-{
+{	
 	char *attrName = rel->schema->attrNames;
 	DataType *dataType = rel->schema->dataTypes;
 	int *keyAttrs = rel->schema->keyAttrs;
@@ -339,45 +339,37 @@ int getNumTuples(RM_TableData *rel)
 RC insertRecord(RM_TableData *rel, Record *record)
 {
 	printf("Insert Record is started\n");
-	Record *record = createRecordObject();
-	int zero = 0;
-	int one = 1;
-	RID ridValue;
-	ridValue.page = one;
-	ridValue.slot = zero;
-	if (ridValue.page < totalNumberOfPages)
-	{
-		if (ridValue.page > 0)
-		{
-			ridValue.slot = 0;
-			ridValue.page = ridValue.page + 1;
-		}
-	}
+	Record *r = (Record *)malloc(sizeof(Record));
+	RID rid;
+	rid.page = 1;
+	rid.slot = 0;
 
-	// while (ridValue.page > 0 && ridValue.page < totalNumberOfPages)
-	// {
-	// 	ridValue.slot = 0;
-	// 	ridValue.page = ridValue.page + 1;
-	// }
-	record = NULL;
-	free(record);
-	int ridPage = ridValue.page;
-	((RecordManager *)rel->mgmtData)->freePages[0] = ridPage;
+	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	{
+		rid.page = rid.page + 1;
+		rid.slot = 0;
+	}
+	r = NULL;
+	free(r);
+	((RecordManager *)rel->mgmtData)->freePages[0] = rid.page;
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
+	/*if(strncmp(page->data, "DEL", 3) == 0)
+		return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;*/
 
 	record->id.page = ((RecordManager *)rel->mgmtData)->freePages[0];
-	record->id.slot = zero;
+	record->id.slot = 0;
 
 	char *serializedRecord = serializeRecord(record, rel->schema);
 
 	pinPage(((RecordManager *)rel->mgmtData)->bm, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
 
 	memset(page->data, '\0', strlen(page->data));
-	//sprintf(page->data, "%s", serializedRecord);
+	sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
+	// printf("record data: %s\n", page->data);
 	free(page);
 	((RecordManager *)rel->mgmtData)->freePages[0] += 1;
-	totalNumberOfPages = totalNumberOfPages+one;
+	totalNumberOfPages++;
 	printf("insert record is ended\n");
 	return RC_OK;
 }
