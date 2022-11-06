@@ -931,6 +931,8 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 {
 	int offset;
 	char *attrData;
+	char *buf;
+	int len;
 	SetOffAttrValue(schema, attrNum, &offset);
 	char *dt = record->data;
 	attrData = dt + offset;
@@ -941,8 +943,7 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 		memcpy(attrData, &(value->v.intV), sizeof(int));
 		break;
 	case DT_STRING:
-		char *buf;
-		int len = schema->typeLength[attrNum];
+		len = schema->typeLength[attrNum];
 		buf = (char *)malloc(len);
 		buf = value->v.stringV;
 		buf[len] = '\0';
