@@ -388,9 +388,9 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 	int freepage1 = ((RecordManager *)rel->mgmtData)->freePages[0];
 	pinPage(bufferPool, page, freepage1);
-	//memorySet(page->data);
-	 memset(page->data, '\0', strlen(page->data));
-	sprintf(page->data, "%s", serializedRecord);
+	memorySet(page->data);
+	 //memset(page->data, '\0', strlen(page->data));
+	//sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
 	free(page);
 	((RecordManager *)rel->mgmtData)->freePages[0] += one;
