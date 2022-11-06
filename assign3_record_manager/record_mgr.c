@@ -382,7 +382,7 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	int freepage = ((RecordManager *)rel->mgmtData)->freePages[0];
 	record->id.page = freepage;
 	record->id.slot = zero;
-	 Schema *schema = rel->schema;
+	Schema *schema = rel->schema;
 	char *serializedRecord = serializeRecord(record, schema);
 	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 	int freepage1 = ((RecordManager *)rel->mgmtData)->freePages[0];
@@ -414,27 +414,44 @@ RC deleteRecord(RM_TableData *rel, RID id)
 
 	char deleteFlag[3] = "DEL";
 	char *deletedflagstr = (char *)malloc(sizeof(char *));
-	if (id.page > 0 && id.page <= totalNumberOfPages)
+	if (id.page < 0 || id.page > totalNumberOfPages)
+		return RC_RM_NO_MORE_TUPLES;
+	else
 	{
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		/*		if(strncmp(page->data, "DEL", 3) == 0)
-					return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;*/
 		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
 		strcpy(deletedflagstr, deleteFlag);
 		strcat(deletedflagstr, page->data);
 		page->pageNum = id.page;
-		memset(page->data, '\0', strlen(page->data));
+		char *dt = page->data;
+		memorySet(dt);
+		// memset(page->data, '\0', strlen(page->data));
 		sprintf(page->data, "%s", deletedflagstr);
-		printf("deleted record: %s\n", page->data);
 		ModifyPageDetails(rel, page);
 		page = NULL;
 		free(page);
 		return RC_OK;
 	}
-	else
-	{
-		return RC_RM_NO_MORE_TUPLES;
-	}
+	// if (id.page > 0 && id.page <= totalNumberOfPages)
+	// {
+	// 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
+	// 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
+	// 	strcpy(deletedflagstr, deleteFlag);
+	// 	strcat(deletedflagstr, page->data);
+	// 	page->pageNum = id.page;
+	// 	char *dt = page->data;
+	// 	memorySet(dt);
+	// 	//memset(page->data, '\0', strlen(page->data));
+	// 	sprintf(page->data, "%s", deletedflagstr);
+	// 	ModifyPageDetails(rel, page);
+	// 	page = NULL;
+	// 	free(page);
+	// 	return RC_OK;
+	// }
+	// else
+	// {
+	// 	return RC_RM_NO_MORE_TUPLES;
+	// }
 
 	return RC_OK;
 }
