@@ -666,51 +666,9 @@ RC next(RM_ScanHandle *scan, Record *record)
 			return RC_OK;
 		}
 	}
-	// if (expr == NULL)
-	// {
-	// 	while (rid.page > 0 && rid.page < totalNumberOfPages)
-	// 	{
-	// 		getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
-
-	// 		record->id = AssignCurrentRecordId(scan);
-	// 		record->data = AssignCurrentRecordData(scan);
-	// 		((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
-
-	// 		rid.slot = AssignCurrentSlot(scan);
-	// 		rid.page = AssignCurrentPage(scan);
-
-	// 		return RC_OK;
-	// 	}
-	// }
-	// else
-	// {
-	// 	while (rid.page > 0 && rid.page < totalNumberOfPages)
-	// 	{
-	// 		getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
-
-	// 		evalExpr(((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->expr, &result);
-
-	// 		if (result->dt == DT_BOOL && result->v.boolV)
-	// 		{
-	// 			record->id = AssignCurrentRecordId(scan);
-	// 			record->data = AssignCurrentRecordData(scan);
-	// 			((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
-
-	// 			return RC_OK;
-	// 		}
-	// 		else
-	// 		{
-	// 			((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
-
-	// 			rid.slot = AssignCurrentSlot(scan);
-	// 			rid.page = AssignCurrentPage(scan);
-	// 		}
-	// 	}
-	// }
-
+	RC result = RC_RM_NO_MORE_TUPLES;
 	((RM_ScanManager *)scan->mgmtData)->currentPage = one;
-
-	return RC_RM_NO_MORE_TUPLES;
+	return result;
 }
 
 /*
