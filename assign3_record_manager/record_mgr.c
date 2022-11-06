@@ -763,8 +763,8 @@ Schema *createSchemaObject()
  *
  */
 
-Schema *createSchema(int numAttr, char **attrNames, 
-DataType *dataTypes, int *typeLength, int keySize, int *keys)
+Schema *createSchema(int numAttr, char **attrNames,
+					 DataType *dataTypes, int *typeLength, int keySize, int *keys)
 {
 	Schema *schema = createSchemaObject();
 	int na = numAttr;
@@ -793,17 +793,12 @@ DataType *dataTypes, int *typeLength, int keySize, int *keys)
 
 RC freeSchema(Schema *schema)
 {
-	while(schema != NULL)
+	while (schema != NULL)
 	{
 		free(schema);
 		break;
 	}
 	return RC_OK;
-	// if (schema != NULL)
-	// {
-	// 	free(schema);
-	// 	return RC_OK;
-	// }
 }
 
 /*
@@ -824,12 +819,16 @@ RC freeSchema(Schema *schema)
 RC createRecord(Record **rec, Schema *schema)
 {
 	printf("Create Record started\n");
-	// Allocating memory for record
-	*rec = (Record *)malloc(sizeof(Record));
-	// Allocating memory for data
-	(*rec)->data = (char *)malloc(getRecordSize(schema));
-	memset((*rec)->data, 0, sizeof(Record));
-
+	// *rec = (Record *)malloc(sizeof(Record));
+	// (*rec)->data = (char *)malloc(getRecordSize(schema));
+	// memset((*rec)->data, 0, sizeof(Record));
+	int zero = 0;
+	size_t r = sizeof(Record);
+	*rec = createRecordObject();
+	int size = getRecordSize(schema);
+	(*rec)->data = (char *)malloc(size);
+	char *dt = (*rec)->data;
+	memset(dt, zero, r);
 	printf("Create Record ended\n");
 	return RC_OK;
 }
