@@ -874,9 +874,9 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 	int set;
 	char *attr;
 	char *buf;
-	int  len;
+	int len;
 	char *dt = record->data;
-	int one =1;
+	int one = 1;
 	int mall;
 
 	*val = (Value *)malloc(sizeof(Value));
@@ -910,28 +910,6 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 		break;
 	}
 
-	// if (schema->dataTypes[attrNum] == DT_INT)
-	// 	memcpy(&((*val)->v.intV), attrData, sizeof(int)); // get the attribute into value
-
-	// else if (schema->dataTypes[attrNum] == DT_STRING)
-	// {
-	// 	char *buf;
-	// 	int len = schema->typeLength[attrNum];
-	// 	buf = (char *)malloc(len + 1);
-	// 	strncpy(buf, attrData, len);
-	// 	buf[len] = '\0';
-	// 	(*val)->v.stringV = buf;
-	// }
-
-	// else if (schema->dataTypes[attrNum] == DT_FLOAT)
-	// 	memcpy(&((*val)->v.floatV), attrData, sizeof(float));
-
-	// else if (schema->dataTypes[attrNum] == DT_BOOL)
-	// 	memcpy(&((*val)->v.boolV), attrData, sizeof(bool));
-
-	// else
-	// 	return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
-
 	return RC_OK;
 }
 
@@ -953,36 +931,56 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 {
 	int offset;
 	char *attrData;
-
-	// offset values
 	SetOffAttrValue(schema, attrNum, &offset);
-	attrData = record->data + offset;
+	char *dt = record->data;
+	attrData = dt + offset;
 
-	// Attributes datatype value
-
-	if (schema->dataTypes[attrNum] == DT_INT)
+	switch (schema->dataTypes[attrNum])
 	{
+	case DT_INT:
 		memcpy(attrData, &(value->v.intV), sizeof(int));
-	}
-
-	else if (schema->dataTypes[attrNum] == DT_STRING)
-	{
+		break;
+	case DT_STRING:
 		char *buf;
 		int len = schema->typeLength[attrNum];
 		buf = (char *)malloc(len);
 		buf = value->v.stringV;
-		// end the string with '\0'
 		buf[len] = '\0';
 		memcpy(attrData, buf, len);
-	}
-	else if (schema->dataTypes[attrNum] == DT_FLOAT)
+		break;
+	case DT_FLOAT:
 		memcpy(attrData, &(value->v.floatV), sizeof(float));
-
-	else if (schema->dataTypes[attrNum] == DT_BOOL)
+		break;
+	case DT_BOOL:
 		memcpy(attrData, &(value->v.boolV), sizeof(bool));
-
-	else
+		break;
+	default:
 		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
+		break;
+	}
+
+	// if (schema->dataTypes[attrNum] == DT_INT)
+	// {
+	// 	memcpy(attrData, &(value->v.intV), sizeof(int));
+	// }
+
+	// else if (schema->dataTypes[attrNum] == DT_STRING)
+	// {
+	// 	char *buf;
+	// 	int len = schema->typeLength[attrNum];
+	// 	buf = (char *)malloc(len);
+	// 	buf = value->v.stringV;
+	// 	buf[len] = '\0';
+	// 	memcpy(attrData, buf, len);
+	// }
+	// else if (schema->dataTypes[attrNum] == DT_FLOAT)
+	// 	memcpy(attrData, &(value->v.floatV), sizeof(float));
+
+	// else if (schema->dataTypes[attrNum] == DT_BOOL)
+	// 	memcpy(attrData, &(value->v.boolV), sizeof(bool));
+
+	// else
+	// 	return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
 
 	return RC_OK;
 }
