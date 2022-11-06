@@ -224,6 +224,13 @@ void getFile(char *readHeader, FILE *file)
 {
 	fgets(readHeader, PAGE_SIZE, file);
 }
+
+void callInitBufferPool(BM_BufferPool *const bufferPool, char *name)
+{
+	int six =6;
+	initBufferPool(bufferPool, name, six, RS_FIFO, NULL);
+}
+
 /*
  * Function: openTable
  * ---------------------------
@@ -248,7 +255,8 @@ RC openTable(RM_TableData *rel, char *name)
 
 
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	initBufferPool(recordManager->bufferPool, name, 6, RS_FIFO, NULL);
+	callInitBufferPool(recordManager->bufferPool, name);
+	//initBufferPool(recordManager->bufferPool, name, 6, RS_FIFO, NULL);
 	pinPage(recordManager->bufferPool, page, 0);
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
