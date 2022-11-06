@@ -359,19 +359,11 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	int zero = 0;
 	rid.page = one;
 	rid.slot = zero;
-
-	// if (rid.page > zero)
-	// {
-	// 	if (rid.page < totalNumberOfPages)
-	// 	{
-	// 		rid.slot = zero;
-	// 		rid.page = rid.page + one;
-	// 	}
-	// }
-	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	
+	while (rid.page < totalNumberOfPages && rid.page > zero)
 	{
-		rid.page = rid.page + 1;
-		rid.slot = 0;
+		rid.page = rid.page + one;
+		rid.slot = zero;
 	}
 	record1 = NULL;
 	free(record1);
