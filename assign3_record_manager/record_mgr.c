@@ -258,9 +258,9 @@ RC openTable(RM_TableData *rel, char *name)
 	// readHeader = CreateReadHeaderObject(name);
 	//fgets(readHeader, PAGE_SIZE, file);
 	getFile(readHeader, file);
-	char *totalPage;
-	totalPage = readHeader;
-	totalNumberOfPages = atoi(totalPage);
+	// char *totalPage;
+	// totalPage = readHeader;
+	totalNumberOfPages = SetTotalPages(readHeader);
 	recordManager->bufferPool = MAKE_POOL();
 	// char *readHeader;
 	// char *totalPage;
