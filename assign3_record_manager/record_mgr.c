@@ -227,10 +227,14 @@ char SetTotalPages(char *readHeader)
 
 FILE *fileReturn(char *name)
 {
-	FILE *fptr = fopen(name, "r+");
-	return fptr;
+	FILE *file = fopen(name, "r+");
+	return file;
 }
 
+void getFile(char *readHeader, FILE *file)
+{
+	fgets(readHeader, PAGE_SIZE, file);
+}
 /*
  * Function: openTable
  * ---------------------------
@@ -248,11 +252,12 @@ RC openTable(RM_TableData *rel, char *name)
 	RecordManager *recordManager = createRecordManagerObject();
 
 	// FILE *fptr = fopen(name, "r+");
-	FILE *fptr = fileReturn(name);
+	FILE *file = fileReturn(name);
 	char *readHeader;
 	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	// readHeader = CreateReadHeaderObject(name);
-	fgets(readHeader, PAGE_SIZE, fptr);
+	//fgets(readHeader, PAGE_SIZE, file);
+	getFile(readHeader, file);
 	char *totalPage;
 	totalPage = readHeader;
 	totalNumberOfPages = atoi(totalPage);
