@@ -432,40 +432,15 @@ RC deleteRecord(RM_TableData *rel, RID id)
 		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 		pinPage(bufferPool, page, pg);
 		stringOperation(flag,deleteFlag,page->data);
-		// strcpy(flag, deleteFlag);
-		// strcat(flag, page->data);
 		page->pageNum = id.page;
 		char *dt = page->data;
 		memorySet(dt);
-		// memset(page->data, '\0', strlen(page->data));
 		sprintf(page->data, "%s", flag);
 		ModifyPageDetails(rel, page);
 		page = NULL;
 		free(page);
 		return RC_OK;
 	}
-	// if (id.page > 0 && id.page <= totalNumberOfPages)
-	// {
-	// 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	// 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
-	// 	strcpy(deletedflagstr, deleteFlag);
-	// 	strcat(deletedflagstr, page->data);
-	// 	page->pageNum = id.page;
-	// 	char *dt = page->data;
-	// 	memorySet(dt);
-	// 	//memset(page->data, '\0', strlen(page->data));
-	// 	sprintf(page->data, "%s", deletedflagstr);
-	// 	ModifyPageDetails(rel, page);
-	// 	page = NULL;
-	// 	free(page);
-	// 	return RC_OK;
-	// }
-	// else
-	// {
-	// 	return RC_RM_NO_MORE_TUPLES;
-	// }
-
-	return RC_OK;
 }
 
 /*
