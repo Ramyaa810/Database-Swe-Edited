@@ -675,9 +675,9 @@ RC next(RM_ScanHandle *scan, Record *record)
 	rid.page = ((RM_ScanManager *)scan->mgmtData)->currentPage;
 	rid.slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
 
-	if(((RM_ScanManager *)scan->mgmtData)->condn == NULL)
+	if(((RM_ScanManager *)scan->mgmtData)->expr == NULL)
 	{
-		while(rid.page > 0 && rid.page < totalPages)
+		while(rid.page > 0 && rid.page < totalNumberOfPages)
 		{
 			getRecord (scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
 
@@ -693,11 +693,11 @@ RC next(RM_ScanHandle *scan, Record *record)
 	}
 	else	
 	{
-		while(rid.page > 0 && rid.page < totalPages)
+		while(rid.page > 0 && rid.page < totalNumberOfPages)
 		{
 			getRecord (scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
 
-			evalExpr (((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->condn, &result);
+			evalExpr (((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->expr, &result);
 			
 			if(result->dt == DT_BOOL && result->v.boolV)
 			{
