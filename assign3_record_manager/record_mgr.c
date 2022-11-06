@@ -581,6 +581,28 @@ int *AssignCurrentSlot(RM_ScanHandle *scan)
 	return slot;
 }
 
+char *AssignCurrentRecordData(RM_ScanHandle *scan)
+{
+	char *dt;
+	dt = ((RM_ScanManager *)scan->mgmtData)->currentRecord->data;
+	return dt;
+}
+
+RID AssignCurrentRecordId(RM_ScanHandle *scan)
+{
+	RID id;
+	id = ((RM_ScanManager *)scan->mgmtData)->currentRecord->id;
+	return id;
+}
+
+int *AssignCurrentPage(RM_ScanHandle *scan)
+{
+	int one = 1;
+	int page;
+	page = ((RM_ScanManager *)scan->mgmtData)->currentPage + one;
+	return page;
+}
+
 /*
  * Function: next
  * ---------------------------
@@ -609,9 +631,9 @@ RC next(RM_ScanHandle *scan, Record *record)
 		{
 			getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
 
-			record->data = ((RM_ScanManager *)scan->mgmtData)->currentRecord->data;
-			record->id = ((RM_ScanManager *)scan->mgmtData)->currentRecord->id;
-			((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
+			record->id = AssignCurrentRecordId(scan);
+			record->data = AssignCurrentRecordData(scan);
+			((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
 
 			rid.slot = AssignCurrentSlot(scan);
 			rid.page = AssignCurrentPage(scan);
@@ -629,15 +651,15 @@ RC next(RM_ScanHandle *scan, Record *record)
 
 			if (result->dt == DT_BOOL && result->v.boolV)
 			{
-				record->data = ((RM_ScanManager *)scan->mgmtData)->currentRecord->data;
-				record->id = ((RM_ScanManager *)scan->mgmtData)->currentRecord->id;
-				((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
+				record->id = AssignCurrentRecordId(scan);
+				record->data = AssignCurrentRecordData(scan);
+				((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
 
 				return RC_OK;
 			}
 			else
 			{
-				((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
+				((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
 
 				rid.slot = AssignCurrentSlot(scan);
 				rid.page = AssignCurrentPage(scan);
