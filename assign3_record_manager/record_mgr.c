@@ -873,10 +873,11 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 {
 	int offset;
 	char *attrData;
+	char *buf;
+	int  len;
 
 	*val = (Value *)malloc(sizeof(Value));
 
-	// calculate the offset, to get the attribute value from
 	SetOffAttrValue(schema, attrNum, &offset);
 	attrData = record->data + offset;
 
@@ -888,8 +889,7 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 		memcpy(&((*val)->v.intV), attrData, sizeof(int));
 		break;
 	case DT_STRING:
-		char *buf;
-		int len = schema->typeLength[attrNum];
+		len = schema->typeLength[attrNum];
 		buf = (char *)malloc(len + 1);
 		strncpy(buf, attrData, len);
 		buf[len] = '\0';
