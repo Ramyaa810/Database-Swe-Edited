@@ -140,18 +140,6 @@ RC shutdownRecordManager()
 	return RC_OK;
 }
 
-// RC returnCreatePageFlag(char *name)
-// {
-// 	RC returnCreatePage = createPageFile(name);
-// 	return returnCreatePage;
-// }
-
-// RC returnOpenPageFlag(char *name, SM_FileHandle *filehandle)
-// {
-// 	RC returnOpenPage = openPageFile(name, &filehandle);
-// 	return returnOpenPage;
-// }
-
 RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 {
 	if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
@@ -536,6 +524,11 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 	}
 }
 
+RM_ScanManager *createScanManagerObject()
+{
+	return (RM_ScanManager *)malloc(sizeof(RM_ScanManager));
+}
+
 /*
 SCANS
 */
@@ -555,22 +548,15 @@ SCANS
 
 RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 {
-
-	// Initialize the Scan Management Struct
-	RM_ScanManager *scan_mgmt = (RM_ScanManager *)malloc(sizeof(RM_ScanManager));
-
-	scan_mgmt->currentRecord = (Record *)malloc(sizeof(Record));
-
-	// using Scan Handle Structure & init its attributes
+	int zero = 0;
+	int one = 1;
+	RM_ScanManager *scanManager = createScanManagerObject();
+	scanManager->currentRecord =createRecordObject();
 	scan->rel = rel;
-
-	scan_mgmt->currentPage = 1;
-	scan_mgmt->currentSlot = 0;
-	scan_mgmt->expr = cond;
-
-	// update and store the managememt data
-	scan->mgmtData = scan_mgmt;
-
+	scanManager->currentSlot = zero;
+	scanManager->currentPage = one;
+	scanManager->expr = cond;
+	scan->mgmtData = scanManager;
 	return RC_OK;
 }
 
