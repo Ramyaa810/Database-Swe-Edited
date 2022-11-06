@@ -845,22 +845,15 @@ RC createRecord(Record **rec, Schema *schema)
 RC freeRecord(Record *record)
 {
 	printf("free record is started\n");
-	if(record == NULL) return RC_NULL;
-	else {
+	if (record == NULL)
+		return RC_NULL;
+	else
+	{
 		record = NULL;
 		free(record);
 		printf("free record is ended\n");
 		return RC_OK;
 	}
-	// if (record != NULL)
-	// {
-	// 	record->data = NULL;
-	// 	free(record->data);
-	// 	record = NULL;
-	// 	free(record);
-	// }
-	//printf("free record is ended\n");
-	//return RC_OK;
 }
 
 /*
@@ -889,27 +882,51 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 
 	(*val)->dt = schema->dataTypes[attrNum];
 
-	if (schema->dataTypes[attrNum] == DT_INT)
-		memcpy(&((*val)->v.intV), attrData, sizeof(int)); // get the attribute into value
-
-	else if (schema->dataTypes[attrNum] == DT_STRING)
+	switch (schema->dataTypes[attrNum])
 	{
+	case DT_INT:
+		memcpy(&((*val)->v.intV), attrData, sizeof(int));
+		break;
+	case DT_STRING:
 		char *buf;
 		int len = schema->typeLength[attrNum];
 		buf = (char *)malloc(len + 1);
 		strncpy(buf, attrData, len);
 		buf[len] = '\0';
 		(*val)->v.stringV = buf;
+		break;
+	case DT_FLOAT:
+		memcpy(&((*val)->v.floatV), attrData, sizeof(float));
+		break;
+	case DT_BOOL:
+		memcpy(&((*val)->v.boolV), attrData, sizeof(bool));
+		break;
+	default:
+		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
+		break;
 	}
 
-	else if (schema->dataTypes[attrNum] == DT_FLOAT)
-		memcpy(&((*val)->v.floatV), attrData, sizeof(float));
+	// if (schema->dataTypes[attrNum] == DT_INT)
+	// 	memcpy(&((*val)->v.intV), attrData, sizeof(int)); // get the attribute into value
 
-	else if (schema->dataTypes[attrNum] == DT_BOOL)
-		memcpy(&((*val)->v.boolV), attrData, sizeof(bool));
+	// else if (schema->dataTypes[attrNum] == DT_STRING)
+	// {
+	// 	char *buf;
+	// 	int len = schema->typeLength[attrNum];
+	// 	buf = (char *)malloc(len + 1);
+	// 	strncpy(buf, attrData, len);
+	// 	buf[len] = '\0';
+	// 	(*val)->v.stringV = buf;
+	// }
 
-	else
-		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
+	// else if (schema->dataTypes[attrNum] == DT_FLOAT)
+	// 	memcpy(&((*val)->v.floatV), attrData, sizeof(float));
+
+	// else if (schema->dataTypes[attrNum] == DT_BOOL)
+	// 	memcpy(&((*val)->v.boolV), attrData, sizeof(bool));
+
+	// else
+	// 	return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
 
 	return RC_OK;
 }
