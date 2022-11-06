@@ -7,7 +7,6 @@
 #include "record_mgr.h"
 #include "expr.h"
 
-
 // Table Details Struct.
 typedef struct RM_TableDetail
 {
@@ -210,19 +209,26 @@ RC createTable(char *name, Schema *schema)
 
 char CreateReadHeaderObject(char *name)
 {
-	//FILE *file = fopen(name, "r+");
-	//char *readHeader;
+	// FILE *file = fopen(name, "r+");
+	// char *readHeader;
 	char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	return readHeader;
-	//fgets(readHeader, PAGE_SIZE, file);
+	// fgets(readHeader, PAGE_SIZE, file);
 }
 
 char SetTotalPages(char *readHeader)
 {
 	char *totalPage;
 	totalPage = readHeader;
-	//atoi(totalPage);
-	return atoi(totalPage);;
+	// atoi(totalPage);
+	return atoi(totalPage);
+	;
+}
+
+FILE *fileReturn(char *name)
+{
+	FILE *fptr = fopen(name, "r+");
+	return fptr;
 }
 
 /*
@@ -238,24 +244,26 @@ char SetTotalPages(char *readHeader)
  */
 RC openTable(RM_TableData *rel, char *name)
 {
-	printf("Open table is started\n");	
+	printf("Open table is started\n");
 	RecordManager *recordManager = createRecordManagerObject();
 
-	FILE *fptr = fopen(name, "r+");	char* readHeader;
-	//readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
-	readHeader = CreateReadHeaderObject(name);
-	fgets(readHeader,PAGE_SIZE,fptr);
-	char* totalPage;
-	totalPage = readHeader;
-	totalNumberOfPages = atoi(totalPage);	
-	recordManager->bufferPool = MAKE_POOL();
-	//char *readHeader;
-	//char *totalPage;
-	// FILE *file = fopen(name, "r+");
+	// FILE *fptr = fopen(name, "r+");
+	FILE *fptr = fileReturn(name);
+	char *readHeader;
+	readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
 	// readHeader = CreateReadHeaderObject(name);
-	// fgets(readHeader, PAGE_SIZE, file);
-	// totalNumberOfPages = SetTotalPages(readHeader);
-	//recordManager->bufferPool = MAKE_POOL();
+	fgets(readHeader, PAGE_SIZE, fptr);
+	char *totalPage;
+	totalPage = readHeader;
+	totalNumberOfPages = atoi(totalPage);
+	recordManager->bufferPool = MAKE_POOL();
+	// char *readHeader;
+	// char *totalPage;
+	//  FILE *file = fopen(name, "r+");
+	//  readHeader = CreateReadHeaderObject(name);
+	//  fgets(readHeader, PAGE_SIZE, file);
+	//  totalNumberOfPages = SetTotalPages(readHeader);
+	// recordManager->bufferPool = MAKE_POOL();
 
 	// Make a Page Handle
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
@@ -273,7 +281,7 @@ RC openTable(RM_TableData *rel, char *name)
 }
 
 void freeAttr(RecordManager *recordManager, RM_TableData *rel)
-{	
+{
 	char *attrName = rel->schema->attrNames;
 	DataType *dataType = rel->schema->dataTypes;
 	int *keyAttrs = rel->schema->keyAttrs;
