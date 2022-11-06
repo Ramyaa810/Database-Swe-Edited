@@ -567,14 +567,14 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 	return RC_OK;
 }
 
-int *AssignCurrentPage(RM_ScanHandle *scan)
+int AssignCurrentPage(RM_ScanHandle *scan)
 {
 	int pg;
 	pg = ((RM_ScanManager *)scan->mgmtData)->currentPage;
 	return pg;
 }
 
-int *AssignCurrentSlot(RM_ScanHandle *scan)
+int AssignCurrentSlot(RM_ScanHandle *scan)
 {
 	int slot;
 	slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
@@ -595,7 +595,7 @@ RID AssignCurrentRecordId(RM_ScanHandle *scan)
 	return id;
 }
 
-int *AssignCurrentPageNext(RM_ScanHandle *scan)
+int AssignCurrentPageNext(RM_ScanHandle *scan)
 {
 	int one = 1;
 	int page;
