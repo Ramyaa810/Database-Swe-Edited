@@ -303,7 +303,7 @@ RC deleteTable(char *name)
 	printf("delete table is ended\n");
 }
 
-Record *createRecordObject()
+Record* createRecordObject()
 {
 	Record *record = (Record *)malloc(sizeof(Record));
 	return record;
@@ -311,7 +311,7 @@ Record *createRecordObject()
 
 int getNumTuples(RM_TableData *rel)
 {
-	Record *record = createRecordObject();
+	Record * record = createRecordObject();
 	RID ridValue;
 	RC flagGetRecord;
 	int one = 1;
