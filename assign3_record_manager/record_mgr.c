@@ -621,39 +621,39 @@ RC next(RM_ScanHandle *scan, Record *record)
 	Value *result;
 	RID rid;
 	int one = 1;
+	int zero = 0;
 
 	rid.slot = AssignCurrentSlot(scan);
 	rid.page = AssignCurrentPage(scan);
+	int id = rid.page;
 	Expr *expr = ((RM_ScanManager *)scan->mgmtData)->expr;
 
-if(expr !=NULL)
-{
-while (rid.page > 0 && rid.page < totalNumberOfPages)
+	if (expr != NULL)
+	{
+		while (id < totalNumberOfPages && id > zero)
 		{
-			getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
-
-			evalExpr(((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->expr, &result);
-
-			if (result->dt == DT_BOOL && result->v.boolV)
+			Record *rd = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
+			RM_TableData *rmTD = scan->rel;;
+			getRecord(rmTD, rid, rd);
+			evalExpr(rd, rmTD->schema, expr, &result);
+			if (result->v.boolV && result->dt == DT_BOOL)
 			{
 				record->id = AssignCurrentRecordId(scan);
 				record->data = AssignCurrentRecordData(scan);
 				((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
-
 				return RC_OK;
 			}
 			else
 			{
 				((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPage(scan);
-
 				rid.slot = AssignCurrentSlot(scan);
 				rid.page = AssignCurrentPage(scan);
 			}
 		}
-}
-else
-{
-	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	}
+	else
+	{
+		while (rid.page > 0 && rid.page < totalNumberOfPages)
 		{
 			getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
 
@@ -666,7 +666,7 @@ else
 
 			return RC_OK;
 		}
-}
+	}
 	// if (expr == NULL)
 	// {
 	// 	while (rid.page > 0 && rid.page < totalNumberOfPages)
