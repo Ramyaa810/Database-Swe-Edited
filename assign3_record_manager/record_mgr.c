@@ -767,12 +767,18 @@ Schema *createSchema(int numAttr, char **attrNames,
 DataType *dataTypes, int *typeLength, int keySize, int *keys)
 {
 	Schema *schema = createSchemaObject();
-	schema->numAttr = numAttr;
-	schema->attrNames = attrNames;
-	schema->dataTypes = dataTypes;
-	schema->typeLength = typeLength;
-	schema->keySize = keySize;
-	schema->keyAttrs = keys;
+	int na = numAttr;
+	char *atn = attrNames;
+	DataType *dt = dataTypes;
+	int len = typeLength;
+	int ks = keySize;
+	int k = keys;
+	schema->numAttr = na;
+	schema->attrNames = atn;
+	schema->dataTypes = dt;
+	schema->typeLength = len;
+	schema->keySize = ks;
+	schema->keyAttrs = k;
 	return schema;
 }
 
