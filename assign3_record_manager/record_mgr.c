@@ -529,6 +529,12 @@ RM_ScanManager *createScanManagerObject()
 	return (RM_ScanManager *)malloc(sizeof(RM_ScanManager));
 }
 
+RM_ScanManager *AssignScanManager(RM_ScanManager *scanManager)
+{	
+	RM_ScanManager *sm = scanManager;
+	return  sm;
+}
+
 /*
 SCANS
 */
@@ -557,8 +563,7 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 	scanManager->currentPage = one;
 	Expr *expr = cond;
 	scanManager->expr = expr;
-	RM_ScanManager *sm = scanManager;
-	scan->mgmtData = sm;
+	scan->mgmtData = AssignScanManager(scanManager);
 	return RC_OK;
 }
 
