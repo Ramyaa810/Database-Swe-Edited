@@ -642,7 +642,9 @@ RC next(RM_ScanHandle *scan, Record *record)
 			rid.page = AssignCurrentPage(scan);
 			return RC_OK;
 		}
-	}else{
+	}
+	else
+	{
 
 		while (rid.page < totalNumberOfPages && rid.page > zero)
 		{
@@ -714,32 +716,52 @@ RC closeScan(RM_ScanHandle *scan)
  */
 int getRecordSize(Schema *schema)
 {
-	int i, recordSize;
-	recordSize = 0;
-
-	for (i = 0; i < schema->numAttr; i++)
+	int i;
+	int size = 0;
+	int attr = schema->numAttr;
+	for (i = 0; i < attr; i++)
 	{
-		switch (schema->dataTypes[i])
+		if (schema->dataTypes[i] == DT_INT)
 		{
-		case DT_INT:
-			recordSize += sizeof(int);
-			break;
-
-		case DT_FLOAT:
-			recordSize += sizeof(float);
-			break;
-
-		case DT_BOOL:
-			recordSize += sizeof(bool);
-			break;
-
-		default:
-			recordSize += schema->typeLength[i];
-			break;
+			size += sizeof(int);
+		}
+		else if (schema->dataTypes[i] == DT_FLOAT)
+		{
+			size += sizeof(float);
+		}
+		else if (schema->dataTypes[i] == DT_BOOL)
+		{
+			size += sizeof(bool);
+		}
+		else
+		{
+			size += schema->typeLength[i];
 		}
 	}
 
-	return recordSize;
+	// for (i = 0; i < attr; i++)
+	// {
+	// 	switch (schema->dataTypes[i])
+	// 	{
+	// 	case DT_INT:
+	// 		size += sizeof(int);
+	// 		break;
+
+	// 	case DT_FLOAT:
+	// 		size += sizeof(float);
+	// 		break;
+
+	// 	case DT_BOOL:
+	// 		size += sizeof(bool);
+	// 		break;
+
+	// 	default:
+	// 		size += schema->typeLength[i];
+	// 		break;
+	// 	}
+	// }
+
+	return size;
 }
 
 /*
