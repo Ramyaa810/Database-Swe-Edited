@@ -227,13 +227,13 @@ void getFile(char *readHeader, FILE *file)
 
 void callInitBufferPool(BM_BufferPool *const bufferPool, char *name)
 {
-	int six =6;
+	int six = 6;
 	initBufferPool(bufferPool, name, six, RS_FIFO, NULL);
 }
 
 void callPinPage(BM_BufferPool *const bufferPool, BM_PageHandle *const page)
 {
-	int zero = 0;	
+	int zero = 0;
 	pinPage(bufferPool, page, 0);
 }
 
@@ -258,7 +258,6 @@ RC openTable(RM_TableData *rel, char *name)
 	getFile(readHeader, file);
 	totalNumberOfPages = SetTotalPages(readHeader);
 	recordManager->bufferPool = MAKE_POOL();
-
 
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
 	callInitBufferPool(recordManager->bufferPool, name);
@@ -354,22 +353,30 @@ int getNumTuples(RM_TableData *rel)
 RC insertRecord(RM_TableData *rel, Record *record)
 {
 	printf("Insert Record is started\n");
-	Record *r = (Record *)malloc(sizeof(Record));
+	Record *record1 = (Record *)malloc(sizeof(Record));
 	RID rid;
-	rid.page = 1;
-	rid.slot = 0;
+	int one = 1;
+	int zero = 0;
+	rid.page = one;
+	rid.slot = zero;
 
-	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	if (rid.page > zero)
 	{
-		rid.page = rid.page + 1;
-		rid.slot = 0;
+		if (rid.page < totalNumberOfPages)
+		{
+			rid.slot = zero;
+			rid.page = rid.page + one;
+		}
 	}
-	r = NULL;
-	free(r);
+	// while (rid.page > 0 && rid.page < totalNumberOfPages)
+	// {
+	// 	rid.page = rid.page + 1;
+	// 	rid.slot = 0;
+	// }
+	record1 = NULL;
+	free(record1);
 	((RecordManager *)rel->mgmtData)->freePages[0] = rid.page;
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	/*if(strncmp(page->data, "DEL", 3) == 0)
-		return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;*/
 
 	record->id.page = ((RecordManager *)rel->mgmtData)->freePages[0];
 	record->id.slot = 0;
