@@ -520,8 +520,8 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 		strcpy(record_data, dt);
 		printf("%s get record data: \n", record_data);
 		Schema *schema = rel->schema;
-		// Record *deSerializedRecord = deserializeRecord(record_data, schema);
-		Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
+		 Record *deSerializedRecord = deserializeRecord(record_data, schema);
+		//Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
 		unpinPage(bufferPool, page);
 
 		//unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
