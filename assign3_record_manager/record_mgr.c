@@ -628,8 +628,25 @@ RC next(RM_ScanHandle *scan, Record *record)
 	int id = rid.page;
 	Expr *expr = ((RM_ScanManager *)scan->mgmtData)->expr;
 
-	if (expr != NULL)
+	if (expr == NULL)
 	{
+		while (id < totalNumberOfPages && id > zero)
+		{
+
+			Record *rd1 = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
+			RM_TableData *rmTD1 = scan->rel;
+			getRecord (scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
+			//getRecord(rmTD1, rid, rd1);
+			record->id = AssignCurrentRecordId(scan);
+			record->data = AssignCurrentRecordData(scan);
+			((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
+			//((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPageNext(scan);
+			rid.slot = AssignCurrentSlot(scan);
+			rid.page = AssignCurrentPage(scan);
+			return RC_OK;
+		}
+	}else{
+
 		while (id < totalNumberOfPages && id > zero)
 		{
 			Record *rd = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
@@ -651,24 +668,6 @@ RC next(RM_ScanHandle *scan, Record *record)
 				rid.slot = AssignCurrentSlot(scan);
 				rid.page = AssignCurrentPage(scan);
 			}
-		}
-	}
-	else
-	{
-		while (id < totalNumberOfPages && id > zero)
-		{
-
-			Record *rd1 = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
-			RM_TableData *rmTD1 = scan->rel;
-			getRecord (scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
-			//getRecord(rmTD1, rid, rd1);
-			record->id = AssignCurrentRecordId(scan);
-			record->data = AssignCurrentRecordData(scan);
-			((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
-			//((RM_ScanManager *)scan->mgmtData)->currentPage = AssignCurrentPageNext(scan);
-			rid.slot = AssignCurrentSlot(scan);
-			rid.page = AssignCurrentPage(scan);
-			return RC_OK;
 		}
 	}
 	((RM_ScanManager *)scan->mgmtData)->currentPage = one;
