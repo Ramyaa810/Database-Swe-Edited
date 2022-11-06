@@ -738,30 +738,13 @@ int getRecordSize(Schema *schema)
 			size += schema->typeLength[i];
 		}
 	}
-
-	// for (i = 0; i < attr; i++)
-	// {
-	// 	switch (schema->dataTypes[i])
-	// 	{
-	// 	case DT_INT:
-	// 		size += sizeof(int);
-	// 		break;
-
-	// 	case DT_FLOAT:
-	// 		size += sizeof(float);
-	// 		break;
-
-	// 	case DT_BOOL:
-	// 		size += sizeof(bool);
-	// 		break;
-
-	// 	default:
-	// 		size += schema->typeLength[i];
-	// 		break;
-	// 	}
-	// }
-
 	return size;
+}
+
+Schema *createSchemaObject()
+{
+	Schema *schema = (Schema *)malloc(sizeof(Schema));
+	return schema;
 }
 
 /*
@@ -780,20 +763,17 @@ int getRecordSize(Schema *schema)
  *
  */
 
-Schema *createSchema(int numAttr, char **attrNames, DataType *dataTypes, int *typeLength, int keySize, int *keys)
+Schema *createSchema(int numAttr, char **attrNames, 
+DataType *dataTypes, int *typeLength, int keySize, int *keys)
 {
-	// allocate memory for Schema to be created
-	Schema *newSchema = (Schema *)malloc(sizeof(Schema));
-
-	// initialize all the attributes for the schema
-	newSchema->numAttr = numAttr;
-	newSchema->attrNames = attrNames;
-	newSchema->dataTypes = dataTypes;
-	newSchema->typeLength = typeLength;
-	newSchema->keySize = keySize;
-	newSchema->keyAttrs = keys;
-
-	return newSchema;
+	Schema *schema = createSchemaObject();
+	schema->numAttr = numAttr;
+	schema->attrNames = attrNames;
+	schema->dataTypes = dataTypes;
+	schema->typeLength = typeLength;
+	schema->keySize = keySize;
+	schema->keyAttrs = keys;
+	return schema;
 }
 
 /*
