@@ -665,8 +665,9 @@ RC next(RM_ScanHandle *scan, Record *record)
 			}
 		}
 	}
+	RC *code = RC_RM_NO_MORE_TUPLES;
 	((RM_ScanManager *)scan->mgmtData)->currentPage = one;
-	return RC_RM_NO_MORE_TUPLES;
+	return code;
 }
 
 /*
