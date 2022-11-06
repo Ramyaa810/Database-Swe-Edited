@@ -311,7 +311,7 @@ Record *createRecordObject()
 
 int getNumTuples(RM_TableData *rel)
 {
-	Record * record = createRecordObject();
+	Record *record = createRecordObject();
 	RID ridValue;
 	RC flagGetRecord;
 	int one = 1;
@@ -350,7 +350,7 @@ int getNumTuples(RM_TableData *rel)
 RC insertRecord(RM_TableData *rel, Record *record)
 {
 	printf("Insert Record is started\n");
-	Record *record = createRecordObject();
+	Record *record1 = createRecordObject();
 	int zero = 0;
 	int one = 1;
 	RID ridValue;
@@ -370,8 +370,8 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	// 	ridValue.slot = 0;
 	// 	ridValue.page = ridValue.page + 1;
 	// }
-	record = NULL;
-	free(record);
+	record1 = NULL;
+	free(record1);
 	int ridPage = ridValue.page;
 	((RecordManager *)rel->mgmtData)->freePages[0] = ridPage;
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
