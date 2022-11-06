@@ -398,6 +398,16 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	return RC_OK;
 }
 
+char *CreateCharObject()
+{	
+	return (char *)malloc(sizeof(char *));
+}
+
+void stringOperation(char *flag, char *deleteflag, char *dt)
+{	
+		strcpy(flag, deleteflag);
+		strcat(flag, dt);
+}
 /*
  * Function: deleteRecord
  * ---------------------------
@@ -411,22 +421,24 @@ RC insertRecord(RM_TableData *rel, Record *record)
  */
 RC deleteRecord(RM_TableData *rel, RID id)
 {
-
 	char deleteFlag[3] = "DEL";
-	char *deletedflagstr = (char *)malloc(sizeof(char *));
+	char *flag = CreateCharObject();
 	if (id.page < 0 || id.page > totalNumberOfPages)
 		return RC_RM_NO_MORE_TUPLES;
 	else
 	{
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
-		strcpy(deletedflagstr, deleteFlag);
-		strcat(deletedflagstr, page->data);
+		int pg = id.page;
+		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
+		pinPage(bufferPool, page, pg);
+		stringOperation(flag,deleteFlag,page->data);
+		// strcpy(flag, deleteFlag);
+		// strcat(flag, page->data);
 		page->pageNum = id.page;
 		char *dt = page->data;
 		memorySet(dt);
 		// memset(page->data, '\0', strlen(page->data));
-		sprintf(page->data, "%s", deletedflagstr);
+		sprintf(page->data, "%s", flag);
 		ModifyPageDetails(rel, page);
 		page = NULL;
 		free(page);
