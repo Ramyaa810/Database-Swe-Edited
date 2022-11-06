@@ -675,6 +675,11 @@ Record *AssignCurrentRecord(RM_ScanHandle *scan)
 	return rm;
 }
 
+RM_ScanHandle *returnNullScan()
+{
+	return NULL;
+}
+
 /*
  * Function: closeScan
  * ---------------------------
@@ -688,11 +693,7 @@ Record *AssignCurrentRecord(RM_ScanHandle *scan)
 
 RC closeScan(RM_ScanHandle *scan)
 {
-	// ((RM_ScanManager *)scan->mgmtData)->currentRecord = NULL;
-	// free(AssignCurrentRecord(scan));
-	// scan->mgmtData = NULL;
-	// free(scan->mgmtData);
-	scan = NULL;
+	scan = returnNullScan();
 	free(scan);
 	return RC_OK;
 }
