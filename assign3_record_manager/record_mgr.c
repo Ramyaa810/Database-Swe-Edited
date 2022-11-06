@@ -383,13 +383,13 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	record->id.page = freepage;
 	record->id.slot = zero;
 	 Schema *schema = rel->schema;
-	//char *serializedRecord = callSerializeRecord(record, rel);
-	char *serializedRecord = serializeRecord(record, schema);
+	char *serializedRecord = callSerializeRecord(record, rel);
+	//char *serializedRecord = serializeRecord(record, schema);
 	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 	int freepage1 = ((RecordManager *)rel->mgmtData)->freePages[0];
 	pinPage(bufferPool, page, freepage1);
-	//memorySet(page->data);
-	 memset(page->data, '\0', strlen(page->data));
+	memorySet(page->data);
+	 //memset(page->data, '\0', strlen(page->data));
 	sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
 	free(page);
