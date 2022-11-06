@@ -555,8 +555,10 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 	scan->rel = rel;
 	scanManager->currentSlot = zero;
 	scanManager->currentPage = one;
-	scanManager->expr = cond;
-	scan->mgmtData = scanManager;
+	Expr *expr = cond;
+	scanManager->expr = expr;
+	RM_ScanManager *sm = scanManager;
+	scan->mgmtData = sm;
 	return RC_OK;
 }
 
