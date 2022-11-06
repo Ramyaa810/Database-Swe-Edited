@@ -242,7 +242,8 @@ RC openTable(RM_TableData *rel, char *name)
 	RecordManager *recordManager = createRecordManagerObject();
 
 	FILE *fptr = fopen(name, "r+");	char* readHeader;
-	readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
+	//readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
+	readHeader = CreateReadHeaderObject(name);
 	fgets(readHeader,PAGE_SIZE,fptr);
 	char* totalPage;
 	totalPage = readHeader;
