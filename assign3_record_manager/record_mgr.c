@@ -630,7 +630,7 @@ RC next(RM_ScanHandle *scan, Record *record)
 
 	if (expr == NULL)
 	{
-		while (id < totalNumberOfPages && id > zero)
+		while (rid.page < totalNumberOfPages && rid.page > zero)
 		{
 
 			Record *rd1 = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
@@ -647,7 +647,7 @@ RC next(RM_ScanHandle *scan, Record *record)
 		}
 	}else{
 
-		while (id < totalNumberOfPages && id > zero)
+		while (rid.page < totalNumberOfPages && rid.page > zero)
 		{
 			Record *rd = ((RM_ScanManager *)scan->mgmtData)->currentRecord;
 			RM_TableData *rmTD = scan->rel;
