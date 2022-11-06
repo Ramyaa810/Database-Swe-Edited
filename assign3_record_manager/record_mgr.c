@@ -1,4 +1,3 @@
-
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -8,12 +7,6 @@
 #include "record_mgr.h"
 #include "expr.h"
 
-// Record Manager Struct.
-typedef struct RecordManager
-{
-	BM_BufferPool *bm;
-	int *freePages;
-} RecordManager;
 
 // Table Details Struct.
 typedef struct RM_TableDetail
@@ -22,12 +15,19 @@ typedef struct RM_TableDetail
 	int schemaSize;
 } RM_TableDetail;
 
+// Record Manager Struct.
+typedef struct RecordManager
+{
+	BM_BufferPool *bufferPool;
+	int *freePages;
+} RecordManager;
+
 // Scan Manager Struct.
 typedef struct RM_ScanManager
 {
-	int currentSlot;
-	Expr *condn;
 	Record *currentRecord;
+	int currentSlot;
+	Expr *expr;
 	int currentPage;
 } RM_ScanManager;
 
@@ -35,17 +35,17 @@ int totalNumberOfPages;
 
 void markDirtyInfo(RM_TableData *rel, BM_PageHandle *page)
 {
-	markDirty(((RecordManager *)rel->mgmtData)->bm, page);
+	markDirty(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
 void unpinPageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
-	unpinPage(((RecordManager *)rel->mgmtData)->bm, page);
+	unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
 void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
-	forcePage(((RecordManager *)rel->mgmtData)->bm, page);
+	forcePage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
 /*
@@ -241,12 +241,12 @@ RC openTable(RM_TableData *rel, char *name)
 	char *totalPage;
 	totalPage = readHeader;
 	totalNumberOfPages = atoi(totalPage);
-	recordManager->bm = MAKE_POOL();
+	recordManager->bufferPool = MAKE_POOL();
 
 	// Make a Page Handle
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
-	initBufferPool(recordManager->bm, name, 6, RS_FIFO, NULL);
-	pinPage(recordManager->bm, page, 0);
+	initBufferPool(recordManager->bufferPool, name, 6, RS_FIFO, NULL);
+	pinPage(recordManager->bufferPool, page, 0);
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
 	rel->schema = deserializeSchema(page->data);
@@ -278,7 +278,7 @@ RC closeTable(RM_TableData *rel)
 	RecordManager *recordManager = createRecordManagerObject();
 	//(RecordManager *)malloc(sizeof(RecordManager));
 	recordManager = rel->mgmtData;
-	shutdownBufferPool(recordManager->bm);
+	shutdownBufferPool(recordManager->bufferPool);
 	freeAttr(recordManager, rel);
 	printf("close table is ended\n");
 	return RC_OK;
@@ -361,7 +361,7 @@ RC insertRecord(RM_TableData *rel, Record *record)
 
 	char *serializedRecord = serializeRecord(record, rel->schema);
 
-	pinPage(((RecordManager *)rel->mgmtData)->bm, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
+	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
 
 	memset(page->data, '\0', strlen(page->data));
 	sprintf(page->data, "%s", serializedRecord);
@@ -395,7 +395,7 @@ RC deleteRecord(RM_TableData *rel, RID id)
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
 		/*		if(strncmp(page->data, "DEL", 3) == 0)
 					return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;*/
-		pinPage(((RecordManager *)rel->mgmtData)->bm, page, id.page);
+		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
 		strcpy(deletedflagstr, deleteFlag);
 		strcat(deletedflagstr, page->data);
 		page->pageNum = id.page;
@@ -443,7 +443,7 @@ RC updateRecord(RM_TableData *rel, Record *record)
 		pageNum = record->id.page;
 		slotNum = record->id.slot;
 		char *record_str = serializeRecord(record, rel->schema);
-		pinPage(((RecordManager *)rel->mgmtData)->bm, page, record->id.page);
+		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
 		memset(page->data, '\0', strlen(page->data));
 		sprintf(page->data, "%s", record_str);
 		free(record_str);
@@ -480,14 +480,14 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 	else
 	{
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		pinPage(((RecordManager *)rel->mgmtData)->bm, page, id.page);
+		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
 		char *record_data = (char *)malloc(sizeof(char) * strlen(page->data));
 		strcpy(record_data, page->data);
 		printf("%s record data: \n", record_data);
 
 		record->id = id;
 		Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
-		unpinPage(((RecordManager *)rel->mgmtData)->bm, page);
+		unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 		record->data = deSerializedRecord->data;
 		if (strncmp(record_data, "DEL", 3) == 0)
 			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
@@ -531,7 +531,7 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 
 	scan_mgmt->currentPage = 1;
 	scan_mgmt->currentSlot = 0;
-	scan_mgmt->condn = cond;
+	scan_mgmt->expr = cond;
 
 	// update and store the managememt data
 	scan->mgmtData = scan_mgmt;
@@ -560,7 +560,7 @@ RC next(RM_ScanHandle *scan, Record *record)
 	rid.page = ((RM_ScanManager *)scan->mgmtData)->currentPage;
 	rid.slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
 
-	if (((RM_ScanManager *)scan->mgmtData)->condn == NULL)
+	if (((RM_ScanManager *)scan->mgmtData)->expr == NULL)
 	{
 		while (rid.page > 0 && rid.page < totalNumberOfPages)
 		{
@@ -582,7 +582,7 @@ RC next(RM_ScanHandle *scan, Record *record)
 		{
 			getRecord(scan->rel, rid, ((RM_ScanManager *)scan->mgmtData)->currentRecord);
 
-			evalExpr(((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->condn, &result);
+			evalExpr(((RM_ScanManager *)scan->mgmtData)->currentRecord, scan->rel->schema, ((RM_ScanManager *)scan->mgmtData)->expr, &result);
 
 			if (result->dt == DT_BOOL && result->v.boolV)
 			{
