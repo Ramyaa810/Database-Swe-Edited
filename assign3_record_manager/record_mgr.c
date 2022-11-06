@@ -359,7 +359,7 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	int zero = 0;
 	rid.page = one;
 	rid.slot = zero;
-	
+
 	while (rid.page < totalNumberOfPages && rid.page > zero)
 	{
 		rid.page = rid.page + one;
@@ -369,21 +369,21 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	free(record1);
 	((RecordManager *)rel->mgmtData)->freePages[0] = rid.page;
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
+	int freepage = ((RecordManager *)rel->mgmtData)->freePages[0];
+	record->id.page = freepage;
+	record->id.slot = zero;
+	Schema *schema = rel->schema;
 
-	record->id.page = ((RecordManager *)rel->mgmtData)->freePages[0];
-	record->id.slot = 0;
-
-	char *serializedRecord = serializeRecord(record, rel->schema);
+	char *serializedRecord = serializeRecord(record, schema);
 
 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
 
 	memset(page->data, '\0', strlen(page->data));
 	sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
-	// printf("record data: %s\n", page->data);
 	free(page);
-	((RecordManager *)rel->mgmtData)->freePages[0] += 1;
-	totalNumberOfPages++;
+	((RecordManager *)rel->mgmtData)->freePages[0] += one;
+	totalNumberOfPages = totalNumberOfPages + one;
 	printf("insert record is ended\n");
 	return RC_OK;
 }
