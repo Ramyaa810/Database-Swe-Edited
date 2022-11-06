@@ -360,19 +360,19 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	rid.page = one;
 	rid.slot = zero;
 
-	if (rid.page > zero)
-	{
-		if (rid.page < totalNumberOfPages)
-		{
-			rid.slot = zero;
-			rid.page = rid.page + one;
-		}
-	}
-	// while (rid.page > 0 && rid.page < totalNumberOfPages)
+	// if (rid.page > zero)
 	// {
-	// 	rid.page = rid.page + 1;
-	// 	rid.slot = 0;
+	// 	if (rid.page < totalNumberOfPages)
+	// 	{
+	// 		rid.slot = zero;
+	// 		rid.page = rid.page + one;
+	// 	}
 	// }
+	while (rid.page > 0 && rid.page < totalNumberOfPages)
+	{
+		rid.page = rid.page + 1;
+		rid.slot = 0;
+	}
 	record1 = NULL;
 	free(record1);
 	((RecordManager *)rel->mgmtData)->freePages[0] = rid.page;
