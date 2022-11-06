@@ -504,6 +504,7 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 {
 	printf("get record is started\n");
 	int zero = 0;
+	char deleteFlag[3] = "DEL";
 	if (id.page > totalNumberOfPages && id.page <= zero)
 		return RC_RM_NO_MORE_TUPLES;
 	else
@@ -526,12 +527,25 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 
 		//unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 		record->data = deSerializedRecord->data;
-		if (strncmp(record_data, "DEL", 3) == 0)
-			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
-		free(deSerializedRecord);
+		int three =3;
+		if (strncmp(record_data, deleteFlag, three) != 0)
+		{
+			free(deSerializedRecord);
 		free(page);
 		printf("get record is ended\n");
 		return RC_OK;
+		} else
+			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
+		// free(deSerializedRecord);
+		// free(page);
+		// printf("get record is ended\n");
+		// return RC_OK;
+		// if (strncmp(record_data, "DEL", 3) == 0)
+		// 	return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
+		// free(deSerializedRecord);
+		// free(page);
+		// printf("get record is ended\n");
+		// return RC_OK;
 
 		// if (strncmp(record_data, "DEL", 3) != 0)
 		// {
