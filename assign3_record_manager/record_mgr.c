@@ -399,14 +399,14 @@ RC insertRecord(RM_TableData *rel, Record *record)
 }
 
 char *CreateCharObject()
-{	
+{
 	return (char *)malloc(sizeof(char *));
 }
 
 void stringOperation(char *flag, char *deleteflag, char *dt)
-{	
-		strcpy(flag, deleteflag);
-		strcat(flag, dt);
+{
+	strcpy(flag, deleteflag);
+	strcat(flag, dt);
 }
 /*
  * Function: deleteRecord
@@ -423,7 +423,8 @@ RC deleteRecord(RM_TableData *rel, RID id)
 {
 	char deleteFlag[3] = "DEL";
 	char *flag = CreateCharObject();
-	if (id.page < 0 || id.page > totalNumberOfPages)
+	int zero = 0;
+	if (id.page < zero || id.page > totalNumberOfPages)
 		return RC_RM_NO_MORE_TUPLES;
 	else
 	{
@@ -431,7 +432,7 @@ RC deleteRecord(RM_TableData *rel, RID id)
 		int pg = id.page;
 		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 		pinPage(bufferPool, page, pg);
-		stringOperation(flag,deleteFlag,page->data);
+		stringOperation(flag, deleteFlag, page->data);
 		page->pageNum = id.page;
 		char *dt = page->data;
 		memorySet(dt);
@@ -458,27 +459,44 @@ RC deleteRecord(RM_TableData *rel, RID id)
 RC updateRecord(RM_TableData *rel, Record *record)
 {
 	printf("update record is started\n");
-	printf("record to be updated: %s\n", record->data);
-	// Check boundary conditions for tuple availability
-	if (record->id.page <= 0 && record->id.page > totalNumberOfPages)
+	printf("record updated: %s\n", record->data);
+	if (record->id.page > 0)
 	{
-		return RC_RM_NO_MORE_TUPLES;
-	}
-	else
-	{
-		BM_PageHandle *page = MAKE_PAGE_HANDLE();
-		int pageNum, slotNum;
-		pageNum = record->id.page;
-		slotNum = record->id.slot;
-		char *record_str = serializeRecord(record, rel->schema);
-		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
-		memset(page->data, '\0', strlen(page->data));
-		sprintf(page->data, "%s", record_str);
-		free(record_str);
-		ModifyPageDetails(rel, page);
-		free(page);
-		return RC_OK;
-	}
+		if(record->id.page <= totalNumberOfPages)
+		{
+			BM_PageHandle *page = MAKE_PAGE_HANDLE();
+			int pageNum, slotNum;
+			pageNum = record->id.page;
+			slotNum = record->id.slot;
+			char *record_str = serializeRecord(record, rel->schema);
+			pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
+			memset(page->data, '\0', strlen(page->data));
+			sprintf(page->data, "%s", record_str);
+			free(record_str);
+			ModifyPageDetails(rel, page);
+			free(page);
+			return RC_OK;
+		} else return RC_RM_NO_MORE_TUPLES;
+	} else return RC_RM_NO_MORE_TUPLES;
+		// if (record->id.page <= 0 && record->id.page > totalNumberOfPages)
+		// {
+		// 	return RC_RM_NO_MORE_TUPLES;
+		// }
+		// else
+		// {
+		// 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
+		// 	int pageNum, slotNum;
+		// 	pageNum = record->id.page;
+		// 	slotNum = record->id.slot;
+		// 	char *record_str = serializeRecord(record, rel->schema);
+		// 	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, record->id.page);
+		// 	memset(page->data, '\0', strlen(page->data));
+		// 	sprintf(page->data, "%s", record_str);
+		// 	free(record_str);
+		// 	ModifyPageDetails(rel, page);
+		// 	free(page);
+		// 	return RC_OK;
+		// }
 	printf("update record is ended\n");
 	return RC_OK;
 }
