@@ -468,10 +468,10 @@ RC updateRecord(RM_TableData *rel, Record *record)
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
 		int pageNumber;
 		int slotNumber;
-		pageNumber = record->id.page;
 		slotNumber = record->id.slot;
-		char *record_str = serializeRecord(record, rel->schema);
+		pageNumber = record->id.page;
 		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
+		char *record_str = serializeRecord(record, rel->schema);
 		int pg = record->id.page;
 		pinPage(bufferPool, page, pg);
 		char *dt =page->data;
