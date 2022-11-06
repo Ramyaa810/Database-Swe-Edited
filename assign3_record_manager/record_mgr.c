@@ -512,36 +512,36 @@ RC getRecord(RM_TableData *rel, RID id, Record *record)
 		BM_PageHandle *page = MAKE_PAGE_HANDLE();
 		BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
 		int pg = id.page;
-		pinPage(bufferPool, page, pg);
-		// pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
+		// pinPage(bufferPool, page, pg);
+		pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, id.page);
 		char *dt = page->data;
-		char *record_data = (char *)malloc(sizeof(char) * strlen(dt));
-		// char *record_data = (char *)malloc(sizeof(char) * strlen(page->data));
+		// char *record_data = (char *)malloc(sizeof(char) * strlen(dt));
+		char *record_data = (char *)malloc(sizeof(char) * strlen(page->data));
 		strcpy(record_data, dt);
 		printf("%s get record data: \n", record_data);
 		Schema *schema = rel->schema;
-		Record *deSerializedRecord = deserializeRecord(record_data, schema);
-		// Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
+		// Record *deSerializedRecord = deserializeRecord(record_data, schema);
+		Record *deSerializedRecord = deserializeRecord(record_data, rel->schema);
 		unpinPage(bufferPool, page);
 
-		// unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
-		//  record->data = deSerializedRecord->data;
-		//  if (strncmp(record_data, "DEL", 3) == 0)
-		//  	return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
-		//  free(deSerializedRecord);
-		//  free(page);
-		//  printf("get record is ended\n");
-		//  return RC_OK;
-
-		if (strncmp(record_data, "DEL", 3) != 0)
-		{
-			free(deSerializedRecord);
-			free(page);
-			printf("get record is ended\n");
-			return RC_OK;
-		}
-		else
+		unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
+		record->data = deSerializedRecord->data;
+		if (strncmp(record_data, "DEL", 3) == 0)
 			return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
+		free(deSerializedRecord);
+		free(page);
+		printf("get record is ended\n");
+		return RC_OK;
+
+		// if (strncmp(record_data, "DEL", 3) != 0)
+		// {
+		// 	free(deSerializedRecord);
+		// 	free(page);
+		// 	printf("get record is ended\n");
+		// 	return RC_OK;
+		// }
+		// else
+		// 	return RC_RM_UPDATE_NOT_POSSIBLE_ON_DELETED_RECORD;
 	}
 	printf("get record is ended\n");
 }
