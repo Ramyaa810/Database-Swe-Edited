@@ -337,6 +337,16 @@ int getNumTuples(RM_TableData *rel)
 	return total;
 }
 
+char callSerializeRecord(Record *record, RM_TableData *rel)
+{
+	return serializeRecord(record, rel->schema);
+}
+
+void memorySet(char *data)
+{
+	memset(data, '\0', strlen(data));
+}
+
 /*
  * Function: insertRecord
  * ---------------------------
@@ -372,14 +382,15 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	int freepage = ((RecordManager *)rel->mgmtData)->freePages[0];
 	record->id.page = freepage;
 	record->id.slot = zero;
-	Schema *schema = rel->schema;
-
-	char *serializedRecord = serializeRecord(record, schema);
-
-	pinPage(((RecordManager *)rel->mgmtData)->bufferPool, page, ((RecordManager *)rel->mgmtData)->freePages[0]);
-
-	memset(page->data, '\0', strlen(page->data));
-	sprintf(page->data, "%s", serializedRecord);
+	// Schema *schema = rel->schema;
+	char *serializedRecord = callSerializeRecord(record, rel);
+	// char *serializedRecord = serializeRecord(record, schema);
+	BM_BufferPool *bufferPool = ((RecordManager *)rel->mgmtData)->bufferPool;
+	int freepage1 = ((RecordManager *)rel->mgmtData)->freePages[0];
+	pinPage(bufferPool, page, freepage1);
+	memorySet(page->data);
+	// memset(page->data, '\0', strlen(page->data));
+	// sprintf(page->data, "%s", serializedRecord);
 	updatePageInfo(rel, page);
 	free(page);
 	((RecordManager *)rel->mgmtData)->freePages[0] += one;
