@@ -212,8 +212,8 @@ char CreateReadHeaderObject(char *name)
 {
 	//FILE *file = fopen(name, "r+");
 	//char *readHeader;
-	return (char *)calloc(PAGE_SIZE, sizeof(char));
-	//return readHeader;
+	char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	return readHeader;
 	//fgets(readHeader, PAGE_SIZE, file);
 }
 
