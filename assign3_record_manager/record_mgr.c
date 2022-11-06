@@ -530,9 +530,9 @@ RM_ScanManager *createScanManagerObject()
 }
 
 RM_ScanManager *AssignScanManager(RM_ScanManager *scanManager)
-{	
+{
 	RM_ScanManager *sm = scanManager;
-	return  sm;
+	return sm;
 }
 
 /*
@@ -557,7 +557,7 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 	int zero = 0;
 	int one = 1;
 	RM_ScanManager *scanManager = createScanManagerObject();
-	scanManager->currentRecord =createRecordObject();
+	scanManager->currentRecord = createRecordObject();
 	scan->rel = rel;
 	scanManager->currentSlot = zero;
 	scanManager->currentPage = one;
@@ -565,6 +565,20 @@ RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 	scanManager->expr = expr;
 	scan->mgmtData = AssignScanManager(scanManager);
 	return RC_OK;
+}
+
+int *AssignCurrentPage(RM_ScanHandle *scan)
+{
+	int pg;
+	pg = ((RM_ScanManager *)scan->mgmtData)->currentPage;
+	return pg;
+}
+
+int *AssignCurrentSlot(RM_ScanHandle *scan)
+{
+	int slot;
+	slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
+	return slot;
 }
 
 /*
@@ -584,9 +598,10 @@ RC next(RM_ScanHandle *scan, Record *record)
 {
 	Value *result;
 	RID rid;
+	int one = 1;
 
-	rid.page = ((RM_ScanManager *)scan->mgmtData)->currentPage;
-	rid.slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
+	rid.slot = AssignCurrentSlot(scan);
+	rid.page = AssignCurrentPage(scan);
 
 	if (((RM_ScanManager *)scan->mgmtData)->expr == NULL)
 	{
@@ -598,8 +613,8 @@ RC next(RM_ScanHandle *scan, Record *record)
 			record->id = ((RM_ScanManager *)scan->mgmtData)->currentRecord->id;
 			((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
 
-			rid.page = ((RM_ScanManager *)scan->mgmtData)->currentPage;
-			rid.slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
+			rid.slot = AssignCurrentSlot(scan);
+			rid.page = AssignCurrentPage(scan);
 
 			return RC_OK;
 		}
@@ -623,13 +638,14 @@ RC next(RM_ScanHandle *scan, Record *record)
 			else
 			{
 				((RM_ScanManager *)scan->mgmtData)->currentPage = ((RM_ScanManager *)scan->mgmtData)->currentPage + 1;
-				rid.page = ((RM_ScanManager *)scan->mgmtData)->currentPage;
-				rid.slot = ((RM_ScanManager *)scan->mgmtData)->currentSlot;
+
+				rid.slot = AssignCurrentSlot(scan);
+				rid.page = AssignCurrentPage(scan);
 			}
 		}
 	}
 
-	((RM_ScanManager *)scan->mgmtData)->currentPage = 1;
+	((RM_ScanManager *)scan->mgmtData)->currentPage = one;
 
 	return RC_RM_NO_MORE_TUPLES;
 }
