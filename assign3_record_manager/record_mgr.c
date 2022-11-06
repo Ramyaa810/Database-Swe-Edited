@@ -263,14 +263,13 @@ RC openTable(RM_TableData *rel, char *name)
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
 	callInitBufferPool(recordManager->bufferPool, name);
 	callPinPage(recordManager->bufferPool, page);
-	//pinPage(recordManager->bufferPool, page, 0);
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
-	rel->schema = deserializeSchema(page->data);
 	rel->name = name;
+	rel->schema = deserializeSchema(page->data);
 	rel->mgmtData = recordManager;
-	free(readHeader);
 	free(page);
+	free(readHeader);
 	printf("Open table is ended\n");
 	return RC_OK;
 }
