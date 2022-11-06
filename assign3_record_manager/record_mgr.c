@@ -819,9 +819,6 @@ RC freeSchema(Schema *schema)
 RC createRecord(Record **rec, Schema *schema)
 {
 	printf("Create Record started\n");
-	// *rec = (Record *)malloc(sizeof(Record));
-	// (*rec)->data = (char *)malloc(getRecordSize(schema));
-	// memset((*rec)->data, 0, sizeof(Record));
 	int zero = 0;
 	size_t r = sizeof(Record);
 	*rec = createRecordObject();
@@ -848,18 +845,22 @@ RC createRecord(Record **rec, Schema *schema)
 RC freeRecord(Record *record)
 {
 	printf("free record is started\n");
-	if (record != NULL)
-	{
-		// Data is freed
-		record->data = NULL;
-		free(record->data);
-
-		// Complete record is freed
+	if(record == NULL) return RC_NULL;
+	else {
 		record = NULL;
 		free(record);
+		printf("free record is ended\n");
+		return RC_OK;
 	}
-	printf("free record is ended\n");
-	return RC_OK;
+	// if (record != NULL)
+	// {
+	// 	record->data = NULL;
+	// 	free(record->data);
+	// 	record = NULL;
+	// 	free(record);
+	// }
+	//printf("free record is ended\n");
+	//return RC_OK;
 }
 
 /*
