@@ -871,35 +871,39 @@ RC freeRecord(Record *record)
 
 RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 {
-	int offset;
-	char *attrData;
+	int set;
+	char *attr;
 	char *buf;
 	int  len;
+	char *dt = record->data;
+	int one =1;
+	int mall;
 
 	*val = (Value *)malloc(sizeof(Value));
 
-	SetOffAttrValue(schema, attrNum, &offset);
-	attrData = record->data + offset;
+	SetOffAttrValue(schema, attrNum, &set);
+	attr = dt + set;
 
 	(*val)->dt = schema->dataTypes[attrNum];
 
 	switch (schema->dataTypes[attrNum])
 	{
 	case DT_INT:
-		memcpy(&((*val)->v.intV), attrData, sizeof(int));
+		memcpy(&((*val)->v.intV), attr, sizeof(int));
 		break;
 	case DT_STRING:
 		len = schema->typeLength[attrNum];
-		buf = (char *)malloc(len + 1);
-		strncpy(buf, attrData, len);
+		mall = len + one;
+		buf = (char *)malloc(mall);
+		strncpy(buf, attr, len);
 		buf[len] = '\0';
 		(*val)->v.stringV = buf;
 		break;
 	case DT_FLOAT:
-		memcpy(&((*val)->v.floatV), attrData, sizeof(float));
+		memcpy(&((*val)->v.floatV), attr, sizeof(float));
 		break;
 	case DT_BOOL:
-		memcpy(&((*val)->v.boolV), attrData, sizeof(bool));
+		memcpy(&((*val)->v.boolV), attr, sizeof(bool));
 		break;
 	default:
 		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
