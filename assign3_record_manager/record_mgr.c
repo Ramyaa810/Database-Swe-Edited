@@ -231,6 +231,12 @@ void callInitBufferPool(BM_BufferPool *const bufferPool, char *name)
 	initBufferPool(bufferPool, name, six, RS_FIFO, NULL);
 }
 
+void callPinPage(BM_BufferPool *const bufferPool, BM_PageHandle *const page)
+{
+	int zero = 0;	
+	pinPage(bufferPool, page, 0);
+}
+
 /*
  * Function: openTable
  * ---------------------------
@@ -256,8 +262,8 @@ RC openTable(RM_TableData *rel, char *name)
 
 	BM_PageHandle *page = MAKE_PAGE_HANDLE();
 	callInitBufferPool(recordManager->bufferPool, name);
-	//initBufferPool(recordManager->bufferPool, name, 6, RS_FIFO, NULL);
-	pinPage(recordManager->bufferPool, page, 0);
+	callPinPage(recordManager->bufferPool, page);
+	//pinPage(recordManager->bufferPool, page, 0);
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
 	rel->schema = deserializeSchema(page->data);
