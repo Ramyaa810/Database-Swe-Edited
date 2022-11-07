@@ -106,8 +106,6 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 {
 	int zero = 0;
 	if (!checkValidfHandle(fHandle)) return RC_FILE_HANDLE_NOT_INIT;
-	// if (fHandle == NULL)
-	// 	return RC_FILE_HANDLE_NOT_INIT;
 	FILE *file = fopen(fileName, "r+");
 	if(file != NULL)
 	{
@@ -122,22 +120,6 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 		return RC_OK;
 
 	} else return RC_FILE_NOT_FOUND;
-	// if (file == NULL)
-	// {
-	// 	return RC_FILE_NOT_FOUND;
-	// }
-	// else
-	// {
-	// 	fHandle->fileName = fileName;
-	// 	char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-	// 	fgets(readHeader, PAGE_SIZE, file);
-	// 	char *totalPage = readHeader;
-	// 	fHandle->totalNumPages = atoi(totalPage);
-	// 	fHandle->curPagePos = 0;
-	// 	fHandle->mgmtInfo = file;
-	// 	free(readHeader);
-	// 	return RC_OK;
-	// }
 }
 
 /*
