@@ -747,7 +747,7 @@ Schema *createSchemaObject()
 	return schema;
 }
 
-DataType AssignDataTypeObject(DataType *dataTypes)
+DataType *AssignDataTypeObject(DataType *dataTypes)
 {
 	DataType *dt = dataTypes;
 	return dt;
