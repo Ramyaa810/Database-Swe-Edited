@@ -286,7 +286,7 @@ RC ensureCapacity(int numberOfPages, SM_FileHandle *fHandle)
     } else {
 		// Pages in memory = pages in disk
         return RC_OK;
-		
+	}
 	// // Validation
 	// if (fHandle == NULL)
 	// 	return RC_FILE_HANDLE_NOT_INIT;
