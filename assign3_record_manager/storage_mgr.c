@@ -160,10 +160,14 @@ RC closePageFile(SM_FileHandle *fHandle)
 // destroying the page file
 RC destroyPageFile(char *fileName)
 {
-	if (fopen(fileName, "r") == NULL)
-		return RC_FILE_NOT_FOUND;
-	if (remove(fileName) == 0)
+	// if (fopen(fileName, "r") == NULL)
+	// 	return RC_FILE_NOT_FOUND;
+	// if (remove(fileName) == 0)
+	// 	return RC_OK;
+	if(remove(fileName) == 0)
 		return RC_OK;
+	else 
+		return RC_FILE_NOT_FOUND;
 }
 
 /*
