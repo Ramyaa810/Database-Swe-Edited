@@ -160,9 +160,9 @@ RC closePageFile(SM_FileHandle *fHandle)
 // destroying the page file
 RC destroyPageFile(char *fileName)
 {
-	if(remove(fileName) == 0)
+	if (remove(fileName) == 0)
 		return RC_OK;
-	else 
+	else
 		return RC_FILE_NOT_FOUND;
 }
 
@@ -175,31 +175,20 @@ RC destroyPageFile(char *fileName)
 */
 RC writeBlock(int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	if(!checkValidfHandle(fHandle)) return RC_FILE_HANDLE_NOT_INIT;
-	if(!checkValidMgmtInfo(fHandle)) return RC_FILE_NOT_FOUND;
-	// if (fHandle == NULL)
-	// 	return RC_FILE_HANDLE_NOT_INIT;
-	// if (fHandle->mgmtInfo == NULL)
-	// 	return RC_FILE_NOT_FOUND;
-int pn = pageNum+1;
-	if(pageNum < fHandle->totalNumPages) {
-        fseek(fHandle->mgmtInfo, (pn * PAGE_SIZE), SEEK_SET);
-        fwrite(memPage,PAGE_SIZE, 1,  fHandle->mgmtInfo);
-        // Updates current page number to recently written file.
-        fHandle->curPagePos = pageNum;
-    } 
-	else {
-		return RC_WRITE_FAILED;
-    }
-return RC_OK;
-
-	// if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1)
-	// 	return RC_WRITE_FAILED;
-
-	// fseek(fHandle->mgmtInfo, (pageNum + 1) * PAGE_SIZE, SEEK_SET);
-	// fwrite(memPage, PAGE_SIZE, 1, fHandle->mgmtInfo);
-	// fHandle->curPagePos = pageNum;
-	// return RC_OK;
+	if (!checkValidfHandle(fHandle))
+		return RC_FILE_HANDLE_NOT_INIT;
+	if (!checkValidMgmtInfo(fHandle))
+		return RC_FILE_NOT_FOUND;
+	int pn = pageNum + 1;
+	if (pageNum < fHandle->totalNumPages)
+	{
+		fseek(fHandle->mgmtInfo, (pn * PAGE_SIZE), SEEK_SET);
+		fwrite(memPage, PAGE_SIZE, 1, fHandle->mgmtInfo);
+		// Updates current page number to recently written file.
+		fHandle->curPagePos = pageNum;
+	}
+	else return RC_WRITE_FAILED;
+	return RC_OK;
 }
 
 /*
