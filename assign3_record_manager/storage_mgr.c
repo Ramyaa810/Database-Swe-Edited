@@ -71,8 +71,8 @@ RC createPageFile(char *fileName)
 		firstPage = createCharObject();
 		headerPage = createCharObject();
 		fputs("1", file);
-		callFileWrite(headerPage,file);
-		callFileWrite(firstPage,file);
+		callFileWrite(headerPage, file);
+		callFileWrite(firstPage, file);
 		free(headerPage);
 		free(firstPage);
 		fclose(file);
@@ -105,9 +105,10 @@ bool checkValidfHandle(SM_FileHandle *fHandle)
 RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 {
 	int zero = 0;
-	if (!checkValidfHandle(fHandle)) return RC_FILE_HANDLE_NOT_INIT;
+	if (!checkValidfHandle(fHandle))
+		return RC_FILE_HANDLE_NOT_INIT;
 	FILE *file = fopen(fileName, "r+");
-	if(file != NULL)
+	if (file != NULL)
 	{
 		fHandle->fileName = fileName;
 		char *readHeader = createCharObject();
@@ -118,7 +119,9 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 		fHandle->mgmtInfo = file;
 		free(readHeader);
 		return RC_OK;
-	} else return RC_FILE_NOT_FOUND;
+	}
+	else
+		return RC_FILE_NOT_FOUND;
 }
 
 /*
@@ -145,14 +148,13 @@ bool checkValidMgmtInfo(SM_FileHandle *fHandle)
 
 RC closePageFile(SM_FileHandle *fHandle)
 {
-	if(!checkValidMgmtInfo(fHandle)) return RC_FILE_NOT_FOUND;
-	else {
+	if (!checkValidMgmtInfo(fHandle))
+		return RC_FILE_NOT_FOUND;
+	else
+	{
 		fclose(fHandle->mgmtInfo);
-		return RC_OK;}
-	// if (fHandle->mgmtInfo == NULL)
-	// 	return RC_FILE_NOT_FOUND;
-	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
+	}
 }
 
 // destroying the page file
