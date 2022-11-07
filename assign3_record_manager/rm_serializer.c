@@ -458,12 +458,12 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	return schema;
 }
 
-char *createCharObject()
+char *createCharObject1()
 {
 	return (char *)malloc(sizeof(char *));
 }
 
-Record *createRecordObject()
+Record *createRecordObject1()
 {
 	return (Record *)malloc(sizeof(Record *));
 }
@@ -482,8 +482,8 @@ Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 	float pointer;
 
 	attr = schema->numAttr - one;
-	record = createRecordObject();
-	record->data = createCharObject();
+	record = createRecordObject1();
+	record->data = createCharObject1();
 
 	start = strtok(deserialize_record_str, "(");
 
