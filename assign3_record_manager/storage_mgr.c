@@ -118,7 +118,6 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 		fHandle->mgmtInfo = file;
 		free(readHeader);
 		return RC_OK;
-
 	} else return RC_FILE_NOT_FOUND;
 }
 
@@ -135,12 +134,12 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 
 RC closePageFile(SM_FileHandle *fHandle)
 {
-
-	// Validation
-	if (fHandle->mgmtInfo == NULL)
-		return RC_FILE_NOT_FOUND;
-
-	// Action
+	if(!checkValidMgmtInfo(fHandle)) return RC_FILE_NOT_FOUND;
+	else {
+		fclose(fHandle->mgmtInfo);
+		return RC_OK;}
+	// if (fHandle->mgmtInfo == NULL)
+	// 	return RC_FILE_NOT_FOUND;
 	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
 }
