@@ -236,34 +236,34 @@ RC appendEmptyBlock(SM_FileHandle *fHandle)
 	if(!checkValidMgmtInfo(fHandle))
 		return RC_FILE_NOT_FOUND;
 
-	char *fn = fHandle->fileName;
-	SM_PageHandle emptyPage = getEmptyPageHandle();
-	fileSeekOperation(emptyPage,fn);
-	assignFileHandle(fHandle, fn, fHandle->mgmtInfo);
-	return RC_OK;
+	// char *fn = fHandle->fileName;
+	// SM_PageHandle emptyPage = getEmptyPageHandle();
+	// fileSeekOperation(emptyPage,fn);
+	// assignFileHandle(fHandle, fn, fHandle->mgmtInfo);
+	// return RC_OK;
 
 	// if (!checkValidfHandle(fHandle))
 	// 	return RC_FILE_HANDLE_NOT_INIT;
 	// if (!checkValidMgmtInfo(fHandle))
 	// 	return RC_FILE_NOT_FOUND;
 
-	// char *newPage = (char *)calloc(PAGE_SIZE, sizeof(char));
-	// fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
-	// if (fwrite(newPage, PAGE_SIZE, 1, fHandle->mgmtInfo))
-	// {
-	// 	fHandle->totalNumPages += 1;
-	// 	fHandle->curPagePos = fHandle->totalNumPages - 1;
-	// 	fseek(fHandle->mgmtInfo, 0L, SEEK_SET);
-	// 	fprintf(fHandle->mgmtInfo, "%d", fHandle->totalNumPages);
-	// 	fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
-	// 	free(newPage);
-	// 	return RC_OK;
-	// }
-	// else
-	// {
-	// 	free(newPage);
-	// 	return RC_WRITE_FAILED;
-	// }
+	char *newPage = (char *)calloc(PAGE_SIZE, sizeof(char));
+	fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
+	if (fwrite(newPage, PAGE_SIZE, 1, fHandle->mgmtInfo))
+	{
+		fHandle->totalNumPages += 1;
+		fHandle->curPagePos = fHandle->totalNumPages - 1;
+		fseek(fHandle->mgmtInfo, 0L, SEEK_SET);
+		fprintf(fHandle->mgmtInfo, "%d", fHandle->totalNumPages);
+		fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
+		free(newPage);
+		return RC_OK;
+	}
+	else
+	{
+		free(newPage);
+		return RC_WRITE_FAILED;
+	}
 }
 
 /*
