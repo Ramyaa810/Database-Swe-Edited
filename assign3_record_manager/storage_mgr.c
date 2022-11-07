@@ -122,6 +122,17 @@ RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 }
 
 /*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the given Management Info is valid and not NULL
+2. If NULL, it will return false
+3.If Not Null, it will retrun true
+*/
+bool checkValidMgmtInfo(SM_FileHandle *fHandle)
+{
+	return (fHandle->mgmtInfo == NULL) ? false : true;
+}
+
+/*
 //
 // Jason Scott A20436737
 //closePageFile; destroyPageFile
@@ -209,19 +220,6 @@ RC writeCurrentBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 		return RC_WRITE_FAILED;
 
 	return writeBlock(getBlockPos(fHandle), fHandle, memPage);
-}
-
-
-
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method checks if the given Management Info is valid and not NULL
-2. If NULL, it will return false
-3.If Not Null, it will retrun true
-*/
-bool checkValidMgmtInfo(SM_FileHandle *fHandle)
-{
-	return (fHandle->mgmtInfo == NULL) ? false : true;
 }
 
 // This method performs the file seek and write on the opened file and finally closes it
