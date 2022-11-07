@@ -738,10 +738,10 @@ Schema *createSchema(int numAttr, char **attrNames,
 {
 	Schema *schema = createSchemaObject();
 	int na = numAttr;
-	char *atn = attrNames;
-	int len = typeLength;
+	char **atn = attrNames;
+	int *len = typeLength;
 	int ks = keySize;
-	int k = keys;
+	int *k = keys;
 	schema->attrNames = atn;
 	schema->typeLength = len;
 	schema->numAttr = na;
