@@ -143,6 +143,12 @@ BufferManager *GetBufferManager()
 	return bufferManager;
 }
 
+BufferManager *createBufferManagerObject()
+{
+	BufferManager *bufferManager = (BufferManager *)malloc(sizeof(BufferManager));
+	return bufferManager;
+}
+
 /*
 Jason Scott - A20436737
 1. This method initiazatizes buffer pool
@@ -152,39 +158,27 @@ Jason Scott - A20436737
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const int numPages, ReplacementStrategy strategy, void *stratData)
 {
 	int i;
-	//checks if the pool exists
+	int zero =0;
+
 	if (CheckValidManagementData(bm))
 		return RC_BUFFER_POOL_EXIST;
-
-	BufferManager *bufferManager = GetBufferManager();
-	//uses a page code to open an existing page and create bufferpools for each page within
-	RC OpenPageReturnCode = openPageFile((char *)pageFileName, bufferManager->smFileHandle);
-	//case that it exists
-	if (OpenPageReturnCode == RC_OK)
-	{	//one for every page
-		for (i = 0; i < numPages; i++)
-			//calls upon previous method
-			createBufferFrame(bufferManager);
-		//initialize attributes and store within 
-		bufferManager->numWrite = 0;
-		bufferManager->tail = bufferManager->head;
-		bufferManager->numRead = 0;
-		//utilizes the mentioned stratety 
-		bufferManager->strategyData = stratData;
-		bufferManager->count = 0;
-		bm->strategy = strategy;
-		bm->numPages = numPages;
-		bm->mgmtData = bufferManager;
-		bm->pageFile = (char *)pageFileName;
-		
-		//finally close it
-		closePageFile(bufferManager->smFileHandle);
-
-		return RC_OK;
-	}
-	//case in which it doesn't exist, return the code
-	else
-		return OpenPageReturnCode;
+	BufferManager *bufferManager = createBufferManagerObject();
+	bufferManager->start = NULL;
+	SM_FileHandle fHandle;
+	openPageFile((char *)pageFileName, &fHandle);
+	for (i = 0; i < numPages; i++)
+		createBufferFrame(bufferManager);
+	bufferManager->tail = bufferManager->head;
+	bufferManager->strategyData = stratData;
+	bufferManager->count = zero;
+	bufferManager->numRead = zero;
+	bufferManager->numWrite = zero;
+	bm->numPages = numPages;
+	bm->pageFile = (char *)pageFileName;
+	bm->strategy = strategy;
+	bm->mgmtData = bufferManager;
+	closePageFile(&fHandle);
+	return RC_OK;
 }
 
 /*
@@ -317,16 +311,16 @@ RC unpinPage(BM_BufferPool *const bm, BM_PageHandle *const page)
 	}
 	frame = frame->nextFrame;
 	int i;
-	//iterates through manager
+	// iterates through manager
 	for (i = 0; frame != bufferManager->head; i++)
 	{
-		//decrement total count of frame used in buffer
+		// decrement total count of frame used in buffer
 		if (frame->pageNumber == page->pageNum)
 		{
 			frame->count--;
 			return RC_OK;
 		}
-		//iterate through
+		// iterate through
 		frame = frame->nextFrame;
 	}
 
@@ -594,7 +588,6 @@ RC CheckReplacementStrategy(BM_PageHandle *const page, BufferManager *bufferMana
 	}
 	return RC_OK;
 }
-
 
 /* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
 // 1. Passes data through CheckReplacementStrategy() in order to figure out which strategy it'll pin(LRU or FIFO)
