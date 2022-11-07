@@ -41,6 +41,17 @@ SM_PageHandle getEmptyPageHandle()
 	return page;
 }
 
+char *createCharObject()
+{
+	char *page = (char *)calloc(PAGE_SIZE, sizeof(char));
+	return page;
+}
+
+void callFileWrite(char *page, FILE *file)
+{
+	fwrite(page, PAGE_SIZE, 1, file);
+}
+
 /*
 //
 // Jason Scott A20436737
@@ -52,15 +63,18 @@ SM_PageHandle getEmptyPageHandle()
 // Creating a page in the file
 RC createPageFile(char *fileName)
 {
-	char *firstPage, *headerPage;
+	char *firstPage;
+	char *headerPage;
 	FILE *file = fopen(fileName, "w");
 	if (file != NULL)
 	{
-		firstPage = (char *)calloc(PAGE_SIZE, sizeof(char));
-		headerPage = (char *)calloc(PAGE_SIZE, sizeof(char));
+		firstPage = createCharObject();
+		headerPage = createCharObject();
 		fputs("1", file);
-		fwrite(headerPage, PAGE_SIZE, 1, file);
-		fwrite(firstPage, PAGE_SIZE, 1, file);
+		callFileWrite(headerPage,file);
+		callFileWrite(firstPage,file);
+		// fwrite(headerPage, PAGE_SIZE, 1, file);
+		// fwrite(firstPage, PAGE_SIZE, 1, file);
 		free(headerPage);
 		free(firstPage);
 		fclose(file);
