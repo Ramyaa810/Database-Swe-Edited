@@ -217,7 +217,7 @@ void fileSeekOperation(SM_PageHandle emptyPage, char *fn)
 {
 	FILE *fileInAppendMode = fopen(fn, "r+");
 	fseek(fileInAppendMode, 0, SEEK_END);
-	fwrite(emptyPage,PAGE_SIZE, 1, fileInAppendMode);
+	fwrite(emptyPage, PAGE_SIZE, 1, fileInAppendMode);
 	fseek(fileInAppendMode, 0, SEEK_END);
 	fclose(fileInAppendMode);
 }
@@ -231,9 +231,9 @@ void fileSeekOperation(SM_PageHandle emptyPage, char *fn)
 */
 RC appendEmptyBlock(SM_FileHandle *fHandle)
 {
-		if(!checkValidfHandle(fHandle))
+	if (!checkValidfHandle(fHandle))
 		return RC_FILE_HANDLE_NOT_INIT;
-	if(!checkValidMgmtInfo(fHandle))
+	if (!checkValidMgmtInfo(fHandle))
 		return RC_FILE_NOT_FOUND;
 
 	// char *fn = fHandle->fileName;
@@ -246,22 +246,27 @@ RC appendEmptyBlock(SM_FileHandle *fHandle)
 	// 	return RC_FILE_HANDLE_NOT_INIT;
 	// if (!checkValidMgmtInfo(fHandle))
 	// 	return RC_FILE_NOT_FOUND;
-
-	char *newPage = (char *)calloc(PAGE_SIZE, sizeof(char));
-	fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
-	if (fwrite(newPage, PAGE_SIZE, 1, fHandle->mgmtInfo))
+	int one = 1;
+	int tnp = fHandle->totalNumPages;
+	int page = tnp + one;
+	char *pg = createCharObject();
+	//(char *)calloc(PAGE_SIZE, sizeof(char));
+	fseek(fHandle->mgmtInfo, page * PAGE_SIZE, SEEK_SET);
+	if (fwrite(pg, PAGE_SIZE, 1, fHandle->mgmtInfo))
 	{
-		fHandle->totalNumPages += 1;
-		fHandle->curPagePos = fHandle->totalNumPages - 1;
+		fHandle->totalNumPages = fHandle->totalNumPages + one;
+		fHandle->curPagePos = fHandle->totalNumPages - one;
 		fseek(fHandle->mgmtInfo, 0L, SEEK_SET);
 		fprintf(fHandle->mgmtInfo, "%d", fHandle->totalNumPages);
-		fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
-		free(newPage);
+		int tnp1 = fHandle->totalNumPages;
+		int page1 = tnp + one;
+		fseek(fHandle->mgmtInfo, page1 * PAGE_SIZE, SEEK_SET);
+		free(pg);
 		return RC_OK;
 	}
 	else
 	{
-		free(newPage);
+		free(pg);
 		return RC_WRITE_FAILED;
 	}
 }
@@ -276,30 +281,20 @@ RC ensureCapacity(int numberOfPages, SM_FileHandle *fHandle)
 {
 	int totalPage = fHandle->totalNumPages;
 	// pages in memory differs from pages in disk
-    if(numberOfPages > totalPage) {
+	if (numberOfPages > totalPage)
+	{
 		// create pages until # of pages in memory and disk equal
-        while(numberOfPages > fHandle->totalNumPages) {
-            appendEmptyBlock (fHandle);
-        }
-        return RC_OK;
-    
-    } else {
-		// Pages in memory = pages in disk
-        return RC_OK;
+		while (numberOfPages > fHandle->totalNumPages)
+		{
+			appendEmptyBlock(fHandle);
+		}
+		return RC_OK;
 	}
-	// // Validation
-	// if (fHandle == NULL)
-	// 	return RC_FILE_HANDLE_NOT_INIT;
-	// if (fHandle->mgmtInfo == NULL)
-	// 	return RC_FILE_NOT_FOUND;
-
-	// // Action
-	// int itr = 0;
-	// for (itr = fHandle->totalNumPages; itr < numberOfPages; ++itr)
-	// {
-	// 	appendEmptyBlock(fHandle);
-	// }
-	// return RC_OK;
+	else
+	{
+		// Pages in memory = pages in disk
+		return RC_OK;
+	}
 }
 
 /*
