@@ -160,10 +160,6 @@ RC closePageFile(SM_FileHandle *fHandle)
 // destroying the page file
 RC destroyPageFile(char *fileName)
 {
-	// if (fopen(fileName, "r") == NULL)
-	// 	return RC_FILE_NOT_FOUND;
-	// if (remove(fileName) == 0)
-	// 	return RC_OK;
 	if(remove(fileName) == 0)
 		return RC_OK;
 	else 
@@ -179,26 +175,12 @@ RC destroyPageFile(char *fileName)
 */
 RC writeBlock(int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
-	// Using the memPage file Handle, we find the offset by multiplying page Num by PAGE_SIZE(4096 bytes). pageNum 0 gives 0 bytes which is the start of the first page and pageNum gives 4096 which is the start of page 2.
-
-	// If the page you're looking for exists, seek to the page and write.
-	//     if(pageNum < fHandle->totalNumPages) {
-	// 		int increPageNum = pageNum+1;
-	//         fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
-	//         fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
-	//         // Updates current page number to recently written file.
-	//         fHandle->curPagePos = pageNum;
-	//     }
-	// 	else {
-	// 		// append block
-	//         appendEmptyBlock(fHandle);
-	//     }
-	// return RC_OK;
-
-	if (fHandle == NULL)
-		return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL)
-		return RC_FILE_NOT_FOUND;
+	if(!checkValidfHandle(fHandle)) return RC_FILE_HANDLE_NOT_INIT;
+	if(!checkValidMgmtInfo(fHandle)) return RC_FILE_NOT_FOUND;
+	// if (fHandle == NULL)
+	// 	return RC_FILE_HANDLE_NOT_INIT;
+	// if (fHandle->mgmtInfo == NULL)
+	// 	return RC_FILE_NOT_FOUND;
 	if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1)
 		return RC_WRITE_FAILED;
 
