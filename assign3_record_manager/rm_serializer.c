@@ -307,7 +307,6 @@ RC attrOffset(Schema *schema, int attrNum, int *result)
 	return RC_OK;
 }
 
-
 char *createCharObject1()
 {
 	return (char *)malloc(sizeof(char *));
@@ -324,144 +323,155 @@ Schema *createSchemaObject1()
 }
 Schema *deserializeSchema(char *serializedSchemaData)
 {
-	VarString *returnValue;
+	VarString *result;
+	
+	MAKE_VARSTRING(result);
+	
+	int i,j,schemaNumAttr,lastAttr;
+
 	Schema *schema;
-	char *start;
-	char *end;
-	char *stringdivide;
-	int i;
-	int j;
-	int schemaNumAttr;
-	int lastAttr;
-	int one =1;
+	schema = (Schema*)malloc(sizeof(Schema));
 
-	MAKE_VARSTRING(returnValue);	
-	schema = createSchemaObject1();
+	char *splitStart, *splitEnd, *splitString;
+	 
+	splitStart = (char*)malloc(sizeof(char));
+	splitEnd  = (char*)malloc(sizeof(char));
+	splitString = (char*)malloc(sizeof(char));
 
-	start = createCharObject1();
-	end = createCharObject1();
-	stringdivide = createCharObject1();
+	splitStart = strtok(serializedSchemaData,"<");
+	splitEnd = strtok(NULL,">");
 
-	end = strtok(NULL, ">");
-	start = strtok(serializedSchemaData, "<");
-
-	schemaNumAttr = strtol(end, &start, 10);
+	schemaNumAttr = strtol(splitEnd, &splitStart,10);
 
 	schema->numAttr = schemaNumAttr;
 
-	schema->attrNames = (char **)malloc(sizeof(char *) * schemaNumAttr);
-	schema->dataTypes = (DataType *)malloc(sizeof(DataType) * schemaNumAttr);
-	schema->typeLength = (int *)malloc(sizeof(int) * schemaNumAttr);
+	schema->attrNames = (char **) malloc (sizeof(char*) * schemaNumAttr);
+	schema->dataTypes = (DataType*) malloc (sizeof (DataType) * schemaNumAttr);
+	schema->typeLength = (int*) malloc (sizeof(int) * schemaNumAttr);
 
-	end = strtok(NULL, "(");
+	splitEnd = strtok(NULL,"(");
 
-	lastAttr = schemaNumAttr - one;
+  	lastAttr =  schemaNumAttr-1;
 
-	for (i = 0; i < schemaNumAttr; i++)
-	{
-		end = strtok(NULL, ": ");
+  	//enter dataTypes and their datalengths
+  	for(i=0;i<schemaNumAttr;i++)
+  	{
+  		splitEnd = strtok(NULL,": ");
 
-		schema->attrNames[i] = createCharObject1();
+  		schema->attrNames[i] = (char*)malloc(sizeof(char*));
+  		
+  		strcpy(schema->attrNames[i],splitEnd);
 
-		strcpy(schema->attrNames[i], end);
+  		if(i != lastAttr)
+  		{
+  			splitEnd = strtok(NULL,", ");
+  		}
+  		
+  		else
+  		{
+  			splitEnd = strtok(NULL,") ");
+  		}
 
-		if (i != lastAttr) end = strtok(NULL, ", ");
-		else end = strtok(NULL, ") ");
+  		
+		if(strcmp(splitEnd,"FLOAT")==0)
+  		{
+  			schema->dataTypes[i] = DT_FLOAT;
+  			schema->typeLength[i] = 0;
+  		}
+  		else if(strcmp(splitEnd,"INT")==0)
+  		{
+  			schema->dataTypes[i] = DT_INT;
+  			schema->typeLength[i] = 0;
+  		}
+  		else if(strcmp(splitEnd,"BOOL")==0)
+  		{
+  			schema->dataTypes[i] = DT_BOOL;
+  			schema->typeLength[i] = 0;
+  		}
+  		else
+  		{
+  			strcpy(splitString, splitEnd);
+  			
+  			char *str;
+			str = (char*) malloc (sizeof(char));
+  			
+			sprintf(str,"%d",i);
+  			strcat(splitString,str);
 
-		if (i != lastAttr) end = strtok(NULL, ", ");
-		else end = strtok(NULL, ") ");		
+  			str = NULL;
+  			free(str);
+  		}
+  	}
 
-		if (strcmp(end, "FLOAT") == 0)
-		{
-			schema->dataTypes[i] = DT_FLOAT;
-			schema->typeLength[i] = 0;
-		}
-		else if (strcmp(end, "INT") == 0)
-		{
-			schema->dataTypes[i] = DT_INT;
-			schema->typeLength[i] = 0;
-		}
-		else if (strcmp(end, "BOOL") == 0)
-		{
-			schema->dataTypes[i] = DT_BOOL;
-			schema->typeLength[i] = 0;
-		}
-		else
-		{
-			strcpy(stringdivide, end);
-
-			char *str;
-			str = (char *)malloc(sizeof(char));
-
-			sprintf(str, "%d", i);
-			strcat(stringdivide, str);
-
-			str = NULL;
-			free(str);
-		}
-	}
-	if ((end = strtok(NULL, "(")) != NULL)
-	{
-
-		char *splitKey;
+  	//to check ifkeys are present
+  	if((splitEnd = strtok(NULL,"("))!=NULL)
+  	{
+  		
+  		char *splitKey; 
 		char *keyAttr[schemaNumAttr];
-		int numOfKeys = 0;
+  		int numOfKeys = 0;
+  		
+		splitEnd = strtok(NULL,")");
+		splitKey = (char*)malloc(sizeof(char));
+  		splitKey = strtok(splitEnd,", ");
 
-		end = strtok(NULL, ")");
-		splitKey = (char *)malloc(sizeof(char));
-		splitKey = strtok(end, ", ");
+  		//Find out the number of Keys & store the attrValues for those Keys
+  		while(splitKey!=NULL)
+  		{
+  			keyAttr[numOfKeys] = (char*)malloc(sizeof(char*));
+  			strcpy(keyAttr[numOfKeys],splitKey);
+  			numOfKeys++;
+  			splitKey = strtok(NULL,", ");
+  		}
 
-		while (splitKey != NULL)
-		{
-			keyAttr[numOfKeys] = (char *)malloc(sizeof(char *));
-			strcpy(keyAttr[numOfKeys], splitKey);
-			numOfKeys++;
-			splitKey = strtok(NULL, ", ");
-		}
+  		splitKey = NULL;
+  		free(splitKey);
 
-		splitKey = NULL;
-		free(splitKey);
+  		//MARK all the key attrs as their INDEX values
+  		schema->keyAttrs = (int*)malloc(sizeof(int)*numOfKeys);
+  		schema->keySize = numOfKeys;
 
-		schema->keyAttrs = (int *)malloc(sizeof(int) * numOfKeys);
-		schema->keySize = numOfKeys;
+  		//for every Key, find the attributes and mark it's index
+  		for(i=0;i<numOfKeys;i++)
+  		{
+  			for(j=0;j<schemaNumAttr;j++)
+  			{
+  				if(strcmp(keyAttr[i],schema->attrNames[j])==0)
+  				{
+  					schema->keyAttrs[i] = j;
+  					break;
+  				}
+  			}
+  		}
+  	}
 
-		for (i = 0; i < numOfKeys; i++)
-		{
-			for (j = 0; j < schemaNumAttr; j++)
-			{
-				if (strcmp(keyAttr[i], schema->attrNames[j]) == 0)
-				{
-					schema->keyAttrs[i] = j;
-					break;
-				}
-			}
-		}
-	}
+  	//for STRING[SIZE] allocate all the attributes
 
-	if (strlen(stringdivide) != 0)
-	{
-		stringdivide = strtok(stringdivide, "[");
-		if (strcmp(stringdivide, "STRING") == 0)
-		{
-			int val, index;
-			stringdivide = strtok(NULL, "]");
-			val = atoi(stringdivide);
-			stringdivide = strtok(NULL, "=");
-			index = atoi(stringdivide);
-			schema->dataTypes[index] = DT_STRING;
+  	if(strlen(splitString)!=0)
+  	{
+  		splitString = strtok(splitString,"[");
+  		if(strcmp(splitString,"STRING")==0)
+  		{
+  			int val, index;
+  			splitString = strtok(NULL,"]");
+  			val = atoi(splitString);
+  			splitString = strtok(NULL,"=");
+  			index = atoi(splitString);
+  			schema->dataTypes[index] = DT_STRING;
 
-			schema->typeLength[index] = val;
-		}
-	}
-
-	stringdivide = NULL;
-	free(stringdivide);
-	start = NULL;
-	free(start);
-	end = NULL;
-	free(end);
-
-	return schema;
+  			schema->typeLength[index] = val;
+  		}
+  	}
+	
+	
+  	splitString = NULL;
+  	free(splitString);
+  	splitStart = NULL;
+  	free(splitStart);
+  	splitEnd = NULL;
+  	free(splitEnd);
+  	
+  	return schema;
 }
 
 Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
