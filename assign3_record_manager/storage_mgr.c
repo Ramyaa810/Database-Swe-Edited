@@ -199,16 +199,24 @@ RC writeBlock(int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 */
 RC writeCurrentBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
+	// If the page you're looking for exists, seek to the page and write.
+    if(fHandle->curPagePos < fHandle->totalNumPages) {
+        fwrite(memPage,  PAGE_SIZE, 1, fHandle->mgmtInfo);
+    } else {
+        return RC_READ_NON_EXISTING_PAGE;
+    }
+
+return RC_OK;
 
 	// Validation
-	if (fHandle == NULL)
-		return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL)
-		return RC_FILE_NOT_FOUND;
-	if (fHandle->curPagePos > fHandle->totalNumPages - 1)
-		return RC_WRITE_FAILED;
+	// if (fHandle == NULL)
+	// 	return RC_FILE_HANDLE_NOT_INIT;
+	// if (fHandle->mgmtInfo == NULL)
+	// 	return RC_FILE_NOT_FOUND;
+	// if (fHandle->curPagePos > fHandle->totalNumPages - 1)
+	// 	return RC_WRITE_FAILED;
 
-	return writeBlock(getBlockPos(fHandle), fHandle, memPage);
+	// return writeBlock(getBlockPos(fHandle), fHandle, memPage);
 }
 
 // This method performs the file seek and write on the opened file and finally closes it
