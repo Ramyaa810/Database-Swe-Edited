@@ -73,8 +73,6 @@ RC createPageFile(char *fileName)
 		fputs("1", file);
 		callFileWrite(headerPage,file);
 		callFileWrite(firstPage,file);
-		// fwrite(headerPage, PAGE_SIZE, 1, file);
-		// fwrite(firstPage, PAGE_SIZE, 1, file);
 		free(headerPage);
 		free(firstPage);
 		fclose(file);
@@ -82,22 +80,6 @@ RC createPageFile(char *fileName)
 	}
 	else
 		return RC_FILE_NOT_FOUND;
-	// if(file==NULL)
-	// {
-	// 	return RC_FILE_NOT_FOUND;
-	// }
-	// else
-	// 	{
-	// 		firstPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-	// 		headerPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-	// 		fputs("1",file);
-	// 		fwrite(headerPage, PAGE_SIZE, 1, file);
-	// 		fwrite(firstPage, PAGE_SIZE, 1, file);
-	// 		free(headerPage);
-	// 		free(firstPage);
-	// 		fclose(file);
-	// 		return RC_OK;
-	// 	}
 }
 
 /*
@@ -111,25 +93,40 @@ RC createPageFile(char *fileName)
 // open page function
 RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 {
-	if (fHandle == NULL)
-		return RC_FILE_HANDLE_NOT_INIT;
-	FILE *fptr = fopen(fileName, "r+");
-	if (fptr == NULL)
-	{
-		return RC_FILE_NOT_FOUND;
-	}
-	else
+	int zero = 0;
+	if (!checkValidfHandle(fHandle)) return RC_FILE_HANDLE_NOT_INIT;
+	// if (fHandle == NULL)
+	// 	return RC_FILE_HANDLE_NOT_INIT;
+	FILE *file = fopen(fileName, "r+");
+	if(file != NULL)
 	{
 		fHandle->fileName = fileName;
-		char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
-		fgets(readHeader, PAGE_SIZE, fptr);
+		char *readHeader = createCharObject();
+		fgets(readHeader, PAGE_SIZE, file);
 		char *totalPage = readHeader;
 		fHandle->totalNumPages = atoi(totalPage);
-		fHandle->curPagePos = 0;
-		fHandle->mgmtInfo = fptr;
+		fHandle->curPagePos = zero;
+		fHandle->mgmtInfo = file;
 		free(readHeader);
 		return RC_OK;
-	}
+
+	} else return RC_FILE_NOT_FOUND;
+	// if (file == NULL)
+	// {
+	// 	return RC_FILE_NOT_FOUND;
+	// }
+	// else
+	// {
+	// 	fHandle->fileName = fileName;
+	// 	char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+	// 	fgets(readHeader, PAGE_SIZE, file);
+	// 	char *totalPage = readHeader;
+	// 	fHandle->totalNumPages = atoi(totalPage);
+	// 	fHandle->curPagePos = 0;
+	// 	fHandle->mgmtInfo = file;
+	// 	free(readHeader);
+	// 	return RC_OK;
+	// }
 }
 
 /*
