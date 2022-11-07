@@ -83,6 +83,17 @@ RC createPageFile(char *fileName)
 }
 
 /*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method checks if the given FileHandle is valid and not NULL
+2. If Null, it will return false
+3.If not Null, it will retrun true
+*/
+bool checkValidfHandle(SM_FileHandle *fHandle)
+{
+	return (fHandle == NULL) ? false : true;
+}
+
+/*
 //
 // Jason Scott A20436737
 //openPageFile
@@ -219,16 +230,7 @@ RC writeCurrentBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 	return writeBlock(getBlockPos(fHandle), fHandle, memPage);
 }
 
-/*
-Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method checks if the given FileHandle is valid and not NULL
-2. If Null, it will return false
-3.If not Null, it will retrun true
-*/
-bool checkValidfHandle(SM_FileHandle *fHandle)
-{
-	return (fHandle == NULL) ? false : true;
-}
+
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
