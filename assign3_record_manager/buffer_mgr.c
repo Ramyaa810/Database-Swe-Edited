@@ -149,6 +149,15 @@ BufferManager *createBufferManagerObject()
 	return bufferManager;
 }
 
+ReplacementStrategy AssignStrategy(ReplacementStrategy strategy)
+{
+	return strategy;
+}
+
+BufferManager *AssignBufferManager(BufferManager *bm)
+{
+	return bm;
+}
 /*
 Jason Scott - A20436737
 1. This method initiazatizes buffer pool
@@ -158,25 +167,24 @@ Jason Scott - A20436737
 RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const int numPages, ReplacementStrategy strategy, void *stratData)
 {
 	int i;
-	int zero =0;
+	int zero = 0;
+	int pageCount = numPages;
 
-	// if (CheckValidManagementData(bm))
-	// 	return RC_BUFFER_POOL_EXIST;
 	BufferManager *bufferManager = createBufferManagerObject();
 	bufferManager->start = NULL;
 	SM_FileHandle fHandle;
 	openPageFile((char *)pageFileName, &fHandle);
-	for (i = 0; i < numPages; i++)
+	for (i = 0; i < pageCount; i++)
 		createBufferFrame(bufferManager);
 	bufferManager->tail = bufferManager->head;
 	bufferManager->strategyData = stratData;
 	bufferManager->count = zero;
 	bufferManager->numRead = zero;
 	bufferManager->numWrite = zero;
-	bm->numPages = numPages;
+	bm->numPages = pageCount;
 	bm->pageFile = (char *)pageFileName;
-	bm->strategy = strategy;
-	bm->mgmtData = bufferManager;
+	bm->strategy = AssignStrategy(strategy);
+	bm->mgmtData = AssignBufferManager(bufferManager);
 	closePageFile(&fHandle);
 	return RC_OK;
 }
