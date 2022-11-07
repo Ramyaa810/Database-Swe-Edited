@@ -176,8 +176,8 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const
 	openPageFile((char *)pageFileName, &fHandle);
 	for (i = 0; i < pageCount; i++)
 		createBufferFrame(bufferManager);
-	bufferManager->tail = bufferManager->head;
 	bufferManager->strategyData = stratData;
+	bufferManager->tail = bufferManager->head;
 	bufferManager->count = zero;
 	bufferManager->numRead = zero;
 	bufferManager->numWrite = zero;

@@ -747,6 +747,12 @@ Schema *createSchemaObject()
 	return schema;
 }
 
+DataType AssignDataTypeObject(DataType *dataTypes)
+{
+	DataType *dt = dataTypes;
+	return dt;
+}
+
 /*
  * Function: createSchema
  * ---------------------------
@@ -769,16 +775,16 @@ Schema *createSchema(int numAttr, char **attrNames,
 	Schema *schema = createSchemaObject();
 	int na = numAttr;
 	char *atn = attrNames;
-	DataType *dt = dataTypes;
+	//DataType *dt = dataTypes;
 	int len = typeLength;
 	int ks = keySize;
 	int k = keys;
-	schema->numAttr = na;
 	schema->attrNames = atn;
-	schema->dataTypes = dt;
 	schema->typeLength = len;
-	schema->keySize = ks;
+	schema->numAttr = na;
 	schema->keyAttrs = k;
+	schema->dataTypes = AssignDataTypeObject(dataTypes);
+	schema->keySize = ks;
 	return schema;
 }
 
