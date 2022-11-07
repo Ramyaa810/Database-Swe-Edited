@@ -160,8 +160,8 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName, const
 	int i;
 	int zero =0;
 
-	if (CheckValidManagementData(bm))
-		return RC_BUFFER_POOL_EXIST;
+	// if (CheckValidManagementData(bm))
+	// 	return RC_BUFFER_POOL_EXIST;
 	BufferManager *bufferManager = createBufferManagerObject();
 	bufferManager->start = NULL;
 	SM_FileHandle fHandle;
