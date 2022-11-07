@@ -32,35 +32,30 @@ typedef struct RM_ScanManager
 
 int totalNumberOfPages;
 
+//calls the Mark Dirty function from buffer pool
 void markDirtyInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	markDirty(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
+//calls the Unpin function from buffer pool
 void unpinPageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
+//calls the Force page function from buffer pool
 void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	forcePage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
 /*
- * Function: updatePageInfo
- * ---------------------------
- * This method is used to update the page information by calling
- * makeDirty, unpinPage and forcePage functions in buffer manager.
- *
- * schema : Management structure to maintain schema details.
- * result : Used to store the offset.
- * attrNum : Number of attributes.
- *
- * returns : RC_OK if all steps in attributeOffSet are successful.
- *
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method calls dirty info, unpin page and force page functions
+2. Inputs- void
+3. returns - Returns void
+*/
 void ModifyPageDetails(RM_TableData *rel, BM_PageHandle *page)
 {
 	markDirtyInfo(rel, page);
@@ -112,14 +107,11 @@ RC SetOffAttrValue(Schema *schema, int attrNum, int *result)
 }
 
 /*
- * Function: initRecordManager
- * ---------------------------
- * This method initializes the record manager.
- *
- * returns : RC_OK as initialing is done and nothing is left to initialize.
- *
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method initializes the record manager
+2. Inputs- void
+3. returns - Returns RC code
+*/
 RC initRecordManager(void *mgmtData)
 {
 	printf("Initializing record manager completed!\n");
@@ -127,19 +119,19 @@ RC initRecordManager(void *mgmtData)
 }
 
 /*
- * Function: shutdownRecordManager
- * ---------------------------
- * This method shuts down the record manager.
- *
- * returns : RC_OK as memory is made free during allocation.
- *
- */
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method shuts the record manager
+2. Inputs- void
+3. returns - Returns RC code
+*/
 RC shutdownRecordManager()
 {
 	printf("Shutdown of record manager completed!\n");
 	return RC_OK;
 }
 
+//Checks if the create and open page are returing correct RC Code
+//if not returns file not found
 RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 {
 	if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
@@ -162,20 +154,11 @@ RecordManager *createRecordManagerObject()
 }
 
 /*
- * Function: createTable
- * ---------------------------
- * This function is used to Create a Table.
- * Create the underlying page file and store information about the schema, free-space, ...
- * and so on in the Table Information pages.
- *
- * name: Name of the relation/table.
- * schema: Schema of the table.
- *
- * returns : RC_FILE_NOT_FOUND if pagefile creation of opening fails.
- *					 RC_WRITE_FAILED if write operation for writing serialized data fails.
- * 					 RC_OK if all steps are executed and table is created.
- *
- */
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to create table
+2. Inputs- schema and name
+3. returns - Returns RC code
+*/
 RC createTable(char *name, Schema *schema)
 {
 	printf("Create table is started\n");
@@ -195,6 +178,7 @@ RC createTable(char *name, Schema *schema)
 	printf("Create table is ended\n");
 }
 
+//Total page value is set from the read Header
 char SetTotalPages(char *readHeader)
 {
 	char *totalPage;
@@ -202,23 +186,27 @@ char SetTotalPages(char *readHeader)
 	return atoi(totalPage);
 }
 
+//Opens a file and returns the object
 FILE *fileReturn(char *name)
 {
 	FILE *file = fopen(name, "r+");
 	return file;
 }
 
+//Calls the fgets method to get the file
 void getFile(char *readHeader, FILE *file)
 {
 	fgets(readHeader, PAGE_SIZE, file);
 }
 
+//Calls init buffer pool function from buffer pool class
 void callInitBufferPool(BM_BufferPool *const bufferPool, char *name)
 {
 	int six = 6;
 	initBufferPool(bufferPool, name, six, RS_FIFO, NULL);
 }
 
+//Calls pin page function from pin page class
 void callPinPage(BM_BufferPool *const bufferPool, BM_PageHandle *const page)
 {
 	int zero = 0;
@@ -226,16 +214,11 @@ void callPinPage(BM_BufferPool *const bufferPool, BM_PageHandle *const page)
 }
 
 /*
- * Function: openTable
- * ---------------------------
- * This function is used to Open a table which is already created with name. This should have a pageFile created.
- * For any operation to be performed, the table has to be opened first.
- *
- * name: Name of the relation/table.
- * rel: Management Structure for a Record Manager to handle one relation.
- *
- * returns : RC_OK if all steps are executed and table is opened.
- */
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to Open already created table
+2. Inputs- table data and name
+3. returns - Returns RC code
+*/
 RC openTable(RM_TableData *rel, char *name)
 {
 	printf("Open table is started\n");
@@ -261,6 +244,7 @@ RC openTable(RM_TableData *rel, char *name)
 	return RC_OK;
 }
 
+//frees all the attributes once the table is closed
 void freeAttr(RecordManager *recordManager, RM_TableData *rel)
 {
 	char *attrName = rel->schema->attrNames;
@@ -275,6 +259,12 @@ void freeAttr(RecordManager *recordManager, RM_TableData *rel)
 	free(rel->schema);
 }
 
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to close already created table
+2. Inputs- table data
+3. returns - Returns RC code
+*/
 RC closeTable(RM_TableData *rel)
 {
 	printf("close table is started\n");
@@ -286,6 +276,12 @@ RC closeTable(RM_TableData *rel)
 	return RC_OK;
 }
 
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to delete exisitng table
+2. Inputs- name of the tabble
+3. returns - Returns RC code
+*/
 RC deleteTable(char *name)
 {
 	printf("delete table is started\n");
@@ -294,12 +290,19 @@ RC deleteTable(char *name)
 	printf("delete table is ended\n");
 }
 
+//created record object
 Record *createRecordObject()
 {
 	Record *record = (Record *)malloc(sizeof(Record));
 	return record;
 }
 
+/*
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to get the tuples value
+2. Inputs- name of the tabble
+3. returns - Returns tuple value
+*/
 int getNumTuples(RM_TableData *rel)
 {
 	Record *record = createRecordObject();
@@ -330,24 +333,18 @@ char callSerializeRecord(Record *record, RM_TableData *rel)
 	return serializeRecord(record, rel->schema);
 }
 
+//memory is set for data 
 void memorySet(char *data)
 {
 	memset(data, '\0', strlen(data));
 }
 
 /*
- * Function: insertRecord
- * ---------------------------
- * This function is used to insert a new record into the table.
- * When a new record is inserted the record manager should assign an
- * RID to this record and update the record parameter passed to insertRecord .
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- * record: Management Structure for Record which has rid and data of a tuple.
- *
- * returns : RC_OK if destroy getRecord is successful.
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to insert records into the table 
+2. Inputs- table data and record object
+3. returns - Returns RC value
+*/
 RC insertRecord(RM_TableData *rel, Record *record)
 {
 	printf("Insert Record is started\n");
@@ -386,27 +383,25 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	return RC_OK;
 }
 
+//creates char object
 char *CreateCharObject()
 {
 	return (char *)malloc(sizeof(char *));
 }
 
+//performs string copy and string concatination
 void stringOperation(char *flag, char *deleteflag, char *dt)
 {
 	strcpy(flag, deleteflag);
 	strcat(flag, dt);
 }
+
 /*
- * Function: deleteRecord
- * ---------------------------
- * This function is used to delete a record from the table.
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- * id: rid to be deleted.
- *
- * returns : RC_OK if delete record is successful.
- *					 RC_RM_NO_MORE_TUPLES if no tuples are available to delete.
- */
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to delete records from exisiting table 
+2. Inputs- table data and rid
+3. returns - Returns RC value
+*/
 RC deleteRecord(RM_TableData *rel, RID id)
 {
 	char deleteFlag[3] = "DEL";
@@ -433,17 +428,11 @@ RC deleteRecord(RM_TableData *rel, RID id)
 }
 
 /*
- * Function: updateRecord
- * ---------------------------
- * This function is used to update a record in the table.
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if delete record is successful.
- *					 RC_RM_NO_MORE_TUPLES if no tuples are available to update.
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to updated records from exisiting table 
+2. Inputs- table data and record object
+3. returns - Returns RC value
+*/
 RC updateRecord(RM_TableData *rel, Record *record)
 {
 	printf("update record is started\n");
@@ -474,20 +463,11 @@ RC updateRecord(RM_TableData *rel, Record *record)
 }
 
 /*
- * Function: getRecord
- * ---------------------------
- * This function is used to get a record from the table using rid.
- *
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- * rid: Record identifier.
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if delete record is successful.
- *					 RC_RM_NO_MORE_TUPLES if no tuples are available to update.
- *
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to get the records from table with rid value
+2. Inputs- tabble data, rid and record
+3. returns - Returns RC value
+*/
 RC getRecord(RM_TableData *rel, RID id, Record *record)
 {
 	printf("get record is started\n");
@@ -701,19 +681,11 @@ RC closeScan(RM_ScanHandle *scan)
 }
 
 /*
- * DEALING WITH SCHEMAS
- */
-
-/*
- * Function: getRecordSize
- * ---------------------------
- * This function is used to get a record size for dealing with schemas
- *
- * numAttr: attribute count in the schema
- *
- * returns : recordSize with the size of the record.
- *
- */
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to get the records size from schema
+2. Inputs- schema data
+3. returns - Returns record size as integer
+*/
 int getRecordSize(Schema *schema)
 {
 	int i;
@@ -741,12 +713,14 @@ int getRecordSize(Schema *schema)
 	return size;
 }
 
+//created schema object
 Schema *createSchemaObject()
 {
 	Schema *schema = (Schema *)malloc(sizeof(Schema));
 	return schema;
 }
 
+//Assigns datatype object
 DataType *AssignDataTypeObject(DataType *dataTypes)
 {
 	DataType *dt = dataTypes;
@@ -754,28 +728,17 @@ DataType *AssignDataTypeObject(DataType *dataTypes)
 }
 
 /*
- * Function: createSchema
- * ---------------------------
- * This function is used to cretae a scehma and initialize its attributes
- *
- * numAttr: number of attributes in the schema
- * attrNames: names of the attributes of schema
- * dataTypes: datatype of every attribute
- * typeLength: size of the attributes
- * keySize: size of the schema keys
- * keyAttrs: attributes associated with the keys
- *
- * returns : the newly created schema
- *
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to create database schema
+2. Inputs- schema related properties
+3. returns - Returns newly created schema
+*/
 Schema *createSchema(int numAttr, char **attrNames,
 					 DataType *dataTypes, int *typeLength, int keySize, int *keys)
 {
 	Schema *schema = createSchemaObject();
 	int na = numAttr;
 	char *atn = attrNames;
-	//DataType *dt = dataTypes;
 	int len = typeLength;
 	int ks = keySize;
 	int k = keys;
@@ -789,14 +752,11 @@ Schema *createSchema(int numAttr, char **attrNames,
 }
 
 /*
- * Function: freeSchema
- * ---------------------------
- * This function is free the created schema after the operations are performed.
- *
- * returns : RC_OK if free schema is successful.
- *
- */
-
+Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
+1. This method is used to free database schema
+2. Inputs- schema object
+3. returns - Returns RC code once the schema is freed
+*/
 RC freeSchema(Schema *schema)
 {
 	while (schema != NULL)
