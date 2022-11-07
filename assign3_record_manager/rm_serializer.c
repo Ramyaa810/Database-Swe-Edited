@@ -499,16 +499,6 @@ Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 		{
 			end = strtok(NULL, ")");
 		}
-
-		// if(i == attr)
-		// {
-		// 	end = strtok(NULL,")");
-		// }
-		// else
-		// {
-		// 	end = strtok(NULL,",");
-		// }
-
 		switch (schema->dataTypes[i])
 		{
 		case DT_INT:
@@ -524,7 +514,15 @@ Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 			free(value);
 			break;
 		case DT_BOOL:
-			boolean = (end[0] == 't') ? TRUE : FALSE;
+		if (end[0] == 't')
+		{
+			boolean = TRUE;
+		}
+		else 
+		{
+			boolean = FALSE;
+		}
+			//boolean = (end[0] == 't') ? TRUE : FALSE;
 			MAKE_VALUE(value, DT_BOOL, boolean);
 			setAttr(record, schema, i, value);
 			free(value);
@@ -537,35 +535,6 @@ Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 		default:
 			printf("DataType is not available");
 		}
-
-		// if(schema->dataTypes[i] == DT_INT)
-		// {
-		// 	num = strtol(end, &start, 10);
-		// 	MAKE_VALUE(value,DT_INT,num);
-		// 	setAttr(record,schema,i,value);
-		// 	free(value);
-		// }
-		// else if(schema->dataTypes[i] == DT_FLOAT)
-		// {	pointer = strtof(end, NULL);
-		// 	MAKE_VALUE(value,DT_FLOAT,pointer);
-		// 	setAttr(record,schema,i,value);
-		// 	free(value);
-		// }
-		// else if(schema->dataTypes[i] == DT_BOOL)
-		// {
-		// 	boolean = (end[0] == 't') ? TRUE: FALSE;
-		// 	MAKE_VALUE(value,DT_BOOL,boolean);
-		// 	setAttr(record,schema,i,value);
-		// 	free(value);
-		// }
-		// else if(schema->dataTypes[i] == DT_STRING)
-		// {
-		// 	MAKE_STRING_VALUE(value,end);
-		// 	setAttr (record,schema,i,value);
-		// 	freeVal(value);
-		// }
-		// else
-		// 	printf("DataType is not available");
 	}
 
 	return record;
