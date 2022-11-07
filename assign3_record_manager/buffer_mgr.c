@@ -579,127 +579,12 @@ RC CheckReplacementStrategy(BM_PageHandle *const page, BufferManager *bufferMana
 		IsPageExistsReturnCode = CheckIfPageExists(RS_CLOCK, pageNum, bufferManager, page);
 		if (IsPageExistsReturnCode == RC_OK)
 			return RC_OK;
-		else
-			pinPageCLOCK(bufferPool, page, pageNum);
+		// else
+		// 	pinPageCLOCK(bufferPool, page, pageNum);
 	}
 	return RC_OK;
 }
 
-// CLOCK Page Replacement Strategy Implementations
-/*
- * This method implements Clock Page Replacement Strategy
- * it is more optimized version of FIFO, implements a circular queue
- * with a reference bit set for each page in pageFrame
- */
-RC pinPageCLOCK(BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum)
-{
-	SM_FileHandle fh;
-	BufferManager *bp_mgmt = bm->mgmtData;
-	BufferFrame *frame = bp_mgmt->head;
-	BufferFrame *temp;
-	openPageFile((char *)bm->pageFile, &fh);
-
-	// if frame already in buffer pool
-
-	do
-	{
-		// if same page
-		if (frame->pageNumber == pageNum)
-		{
-			page->pageNum = pageNum;
-			page->data = frame->data;
-
-			frame->refBit = 1; // mark its reference bit as 1, as it is referred again
-			frame->pageNumber = pageNum;
-			frame->count++;
-
-			return RC_OK;
-		}
-		frame = frame->nextFrame;
-	} while (frame != bp_mgmt->head);
-
-	// if space present will be executed at the start when all the frames are empty
-	if (bp_mgmt->count < bm->numPages)
-	{
-		frame = bp_mgmt->head;
-
-		frame->pageNumber = pageNum;
-		frame->refBit = 1; // and mark their reference bit as 1
-
-		// all the insertions will be made at the Head,
-		// every time the insert takes place head is moved to that node
-		if (frame->nextFrame != bp_mgmt->head)
-		{
-			bp_mgmt->head = frame->nextFrame;
-		}
-
-		frame->count++;
-		bp_mgmt->count++;
-	}
-	else
-	{
-		// if replacement reqd
-		frame = bp_mgmt->head;
-
-		do
-		{
-			// find a page whose reference bit is 0, to be replaced,
-			// and along its way make other reference bit which are 1 to 0
-
-			if (frame->count != 0)
-			{
-				frame = frame->nextFrame;
-			}
-			else
-			{
-				while (frame->refBit != 0)
-				{
-					frame->refBit = 0;
-					frame = frame->nextFrame;
-				}
-
-				// if reference bit is 0 replace the page
-				if (frame->refBit == 0)
-				{
-					// check the page that is replaced,
-					// if its dirty bit is set, then writeBlock and then replace
-					if (frame->dirtyFlag == 1)
-					{
-						ensureCapacity(frame->pageNumber, &fh);
-						if (writeBlock(frame->pageNumber, &fh, frame->data) != RC_OK)
-						{
-							closePageFile(&fh);
-							return RC_WRITE_FAILED;
-						}
-						bp_mgmt->numWrite++;
-					}
-					// update all the frame & page attributes
-					frame->refBit = 1;
-					frame->pageNumber = pageNum;
-					frame->count++;
-					bp_mgmt->head = frame->nextFrame;
-					break;
-				}
-			}
-
-		} while (frame != bp_mgmt->head);
-	}
-	ensureCapacity((pageNum + 1), &fh);
-
-	if (readBlock(pageNum, &fh, frame->data) != RC_OK)
-	{
-		closePageFile(&fh);
-		return RC_READ_NON_EXISTING_PAGE;
-	}
-
-	bp_mgmt->numRead++;
-	page->pageNum = pageNum;
-	page->data = frame->data;
-
-	closePageFile(&fh);
-
-	return RC_OK;
-}
 
 /* Darek Nowak A20497998 + Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
 // 1. Passes data through CheckReplacementStrategy() in order to figure out which strategy it'll pin(LRU or FIFO)
