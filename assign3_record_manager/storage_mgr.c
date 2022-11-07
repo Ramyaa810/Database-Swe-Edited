@@ -4,19 +4,20 @@
 #include <stdbool.h>
 
 /*
-// 
+//
 // Jason Scott A20436737
 //initStorageManager
 // 1. Initializes the stroage manager
-*/ 
-void initStorageManager(void) {
+*/
+void initStorageManager(void)
+{
 	printf("\n ~~~~~Initializing Storage Manager~~~~\n ");
 	printf("CS525\n");
 }
 
-/*1. This method will assign values to management info and file seek 
+/*1. This method will assign values to management info and file seek
 2. Accepts sm_filehandle, filename and file values*/
-void assignFileHandle(SM_FileHandle* fHandle, char* fileName, FILE* file)
+void assignFileHandle(SM_FileHandle *fHandle, char *fileName, FILE *file)
 {
 	fHandle->fileName = fileName;
 	int curPos = ftell(file) / PAGE_SIZE;
@@ -28,106 +29,122 @@ void assignFileHandle(SM_FileHandle* fHandle, char* fileName, FILE* file)
 	fseek(file, curPos * PAGE_SIZE, SEEK_SET);
 }
 
-//This method is used to create empty page handles as per the page size
+// This method is used to create empty page handles as per the page size
 SM_PageHandle getEmptyPageHandle()
 {
-	SM_PageHandle page = (SM_PageHandle) malloc(PAGE_SIZE);
+	SM_PageHandle page = (SM_PageHandle)malloc(PAGE_SIZE);
 	int i;
-	for (i = 0; i < PAGE_SIZE; ++i) {
+	for (i = 0; i < PAGE_SIZE; ++i)
+	{
 		page[i] = '\0';
 	}
 	return page;
 }
 
 /*
-// 
+//
 // Jason Scott A20436737
 //createPageFile
-// 1. Opens file 
+// 1. Opens file
 // 2. Append an empty block
 // 3. Write the empty block
-*/ 
-//Creating a page in the file
-RC createPageFile (char *fileName)
+*/
+// Creating a page in the file
+RC createPageFile(char *fileName)
 {
 	char *firstPage, *headerPage;
-	FILE *fptr = fopen(fileName, "w");
-	if(fptr==NULL)
+	FILE *file = fopen(fileName, "w");
+	if (file != NULL)
 	{
-		return RC_FILE_NOT_FOUND;
+		firstPage = (char *)calloc(PAGE_SIZE, sizeof(char));
+		headerPage = (char *)calloc(PAGE_SIZE, sizeof(char));
+		fputs("1", file);
+		fwrite(headerPage, PAGE_SIZE, 1, file);
+		fwrite(firstPage, PAGE_SIZE, 1, file);
+		free(headerPage);
+		free(firstPage);
+		fclose(file);
+		return RC_OK;
 	}
 	else
-		{
-			firstPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-			headerPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-			fputs("1",fptr);
-			fwrite(headerPage, PAGE_SIZE, 1, fptr);
-			fwrite(firstPage, PAGE_SIZE, 1, fptr);
-			free(headerPage);
-			free(firstPage);
-			fclose(fptr);
-			return RC_OK;
-		}
+		return RC_FILE_NOT_FOUND;
+	// if(file==NULL)
+	// {
+	// 	return RC_FILE_NOT_FOUND;
+	// }
+	// else
+	// 	{
+	// 		firstPage = (char*)calloc(PAGE_SIZE, sizeof(char));
+	// 		headerPage = (char*)calloc(PAGE_SIZE, sizeof(char));
+	// 		fputs("1",file);
+	// 		fwrite(headerPage, PAGE_SIZE, 1, file);
+	// 		fwrite(firstPage, PAGE_SIZE, 1, file);
+	// 		free(headerPage);
+	// 		free(firstPage);
+	// 		fclose(file);
+	// 		return RC_OK;
+	// 	}
 }
 
 /*
-// 
+//
 // Jason Scott A20436737
 //openPageFile
 // 1. Opens existing file, else returns not found error
 // 2. Outputs properties of the file
-// 3. Writes using fputs 
-*/ 
-//open page function
+// 3. Writes using fputs
+*/
+// open page function
 RC openPageFile(char *fileName, SM_FileHandle *fHandle)
 {
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle == NULL)
+		return RC_FILE_HANDLE_NOT_INIT;
 	FILE *fptr = fopen(fileName, "r+");
-	if(fptr==NULL)
+	if (fptr == NULL)
 	{
 		return RC_FILE_NOT_FOUND;
 	}
 	else
 	{
 		fHandle->fileName = fileName;
-		char* readHeader = (char*)calloc(PAGE_SIZE,sizeof(char));
-		fgets(readHeader,PAGE_SIZE,fptr);
-		char* totalPage = readHeader;
+		char *readHeader = (char *)calloc(PAGE_SIZE, sizeof(char));
+		fgets(readHeader, PAGE_SIZE, fptr);
+		char *totalPage = readHeader;
 		fHandle->totalNumPages = atoi(totalPage);
 		fHandle->curPagePos = 0;
 		fHandle->mgmtInfo = fptr;
 		free(readHeader);
 		return RC_OK;
 	}
-
 }
 
 /*
-// 
+//
 // Jason Scott A20436737
 //closePageFile; destroyPageFile
 // 1. Opens a file
 // 2. If exists, it closes or destroys
 // 3. If issues with 1 or 2, it displays errors
-*/ 
+*/
 
-//closing the file
+// closing the file
 
-RC closePageFile (SM_FileHandle *fHandle)
+RC closePageFile(SM_FileHandle *fHandle)
 {
-	
+
 	// Validation
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+	if (fHandle->mgmtInfo == NULL)
+		return RC_FILE_NOT_FOUND;
 
 	// Action
 	if (fclose(fHandle->mgmtInfo) == 0)
 		return RC_OK;
 }
 
-//destroying the page file
-RC destroyPageFile (char *fileName)
+// destroying the page file
+RC destroyPageFile(char *fileName)
 {
-	if (fopen(fileName,"r")==NULL)
+	if (fopen(fileName, "r") == NULL)
 		return RC_FILE_NOT_FOUND;
 	if (remove(fileName) == 0)
 		return RC_OK;
@@ -136,35 +153,37 @@ RC destroyPageFile (char *fileName)
 /*
 // Writes from memory into disk to an absolute location using the given pageNum.
 // Darek Nowak A20497998
-// 1. Opens file 
+// 1. Opens file
 // 2. Fseeks given the offset from memPage to find the absolute location of where we will write
-// 3. Writes using fwrite 
+// 3. Writes using fwrite
 */
-RC writeBlock (int pageNum , SM_FileHandle * fHandle , SM_PageHandle memPage ) {
-// Using the memPage file Handle, we find the offset by multiplying page Num by PAGE_SIZE(4096 bytes). pageNum 0 gives 0 bytes which is the start of the first page and pageNum gives 4096 which is the start of page 2.
+RC writeBlock(int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
+	// Using the memPage file Handle, we find the offset by multiplying page Num by PAGE_SIZE(4096 bytes). pageNum 0 gives 0 bytes which is the start of the first page and pageNum gives 4096 which is the start of page 2.
 
+	// If the page you're looking for exists, seek to the page and write.
+	//     if(pageNum < fHandle->totalNumPages) {
+	// 		int increPageNum = pageNum+1;
+	//         fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
+	//         fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
+	//         // Updates current page number to recently written file.
+	//         fHandle->curPagePos = pageNum;
+	//     }
+	// 	else {
+	// 		// append block
+	//         appendEmptyBlock(fHandle);
+	//     }
+	// return RC_OK;
 
+	if (fHandle == NULL)
+		return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL)
+		return RC_FILE_NOT_FOUND;
+	if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1)
+		return RC_WRITE_FAILED;
 
-    // If the page you're looking for exists, seek to the page and write.
-//     if(pageNum < fHandle->totalNumPages) {
-// 		int increPageNum = pageNum+1;
-//         fseek(fHandle->mgmtInfo, (increPageNum * PAGE_SIZE), SEEK_SET);
-//         fwrite(memPage, PAGE_SIZE,1,fHandle->mgmtInfo);
-//         // Updates current page number to recently written file.
-//         fHandle->curPagePos = pageNum;
-//     } 
-// 	else {
-// 		// append block
-//         appendEmptyBlock(fHandle);
-//     }
-// return RC_OK;
-
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-	if (pageNum < 0 || pageNum > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
-
-	fseek(fHandle->mgmtInfo,(pageNum+1)*PAGE_SIZE,SEEK_SET);
-	fwrite(memPage,PAGE_SIZE,1,fHandle->mgmtInfo);
+	fseek(fHandle->mgmtInfo, (pageNum + 1) * PAGE_SIZE, SEEK_SET);
+	fwrite(memPage, PAGE_SIZE, 1, fHandle->mgmtInfo);
 	fHandle->curPagePos = pageNum;
 	return RC_OK;
 }
@@ -175,17 +194,19 @@ RC writeBlock (int pageNum , SM_FileHandle * fHandle , SM_PageHandle memPage ) {
 // 1. Opens file
 // 2. Write using fwrite
 */
-RC writeCurrentBlock ( SM_FileHandle * fHandle , SM_PageHandle memPage ) {
+RC writeCurrentBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
+{
 
-	
-// Validation
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
-	if (fHandle->curPagePos > fHandle->totalNumPages - 1) return RC_WRITE_FAILED;
+	// Validation
+	if (fHandle == NULL)
+		return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL)
+		return RC_FILE_NOT_FOUND;
+	if (fHandle->curPagePos > fHandle->totalNumPages - 1)
+		return RC_WRITE_FAILED;
 
-	return writeBlock(getBlockPos(fHandle),fHandle,memPage);
+	return writeBlock(getBlockPos(fHandle), fHandle, memPage);
 }
-
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
@@ -209,10 +230,10 @@ bool checkValidMgmtInfo(SM_FileHandle *fHandle)
 	return (fHandle->mgmtInfo == NULL) ? false : true;
 }
 
-//This method performs the file seek and write on the opened file and finally closes it
-void fileSeekOperation(SM_PageHandle emptyPage, char * fn)
+// This method performs the file seek and write on the opened file and finally closes it
+void fileSeekOperation(SM_PageHandle emptyPage, char *fn)
 {
-	FILE* fileInAppendMode = fopen(fn, "r+");
+	FILE *fileInAppendMode = fopen(fn, "r+");
 	fseek(fileInAppendMode, 0, SEEK_END);
 	fwrite(emptyPage, 1, PAGE_SIZE, fileInAppendMode);
 	fseek(fileInAppendMode, 0, SEEK_END);
@@ -226,22 +247,22 @@ void fileSeekOperation(SM_PageHandle emptyPage, char * fn)
 // 3. Update the metadata by incrementing totalNumPages
 // 4. Use the writeBlock function to write a new file with the given newBlock.
 */
-RC appendEmptyBlock(SM_FileHandle* fHandle)
+RC appendEmptyBlock(SM_FileHandle *fHandle)
 {
-	if(!checkValidfHandle(fHandle))
+	if (!checkValidfHandle(fHandle))
 		return RC_FILE_HANDLE_NOT_INIT;
-	if(!checkValidMgmtInfo(fHandle))
+	if (!checkValidMgmtInfo(fHandle))
 		return RC_FILE_NOT_FOUND;
 
-	char * newPage = (char*)calloc(PAGE_SIZE, sizeof(char));
-	fseek(fHandle->mgmtInfo,(fHandle->totalNumPages+1)*PAGE_SIZE,SEEK_SET);
-	if(fwrite(newPage, PAGE_SIZE, 1, fHandle->mgmtInfo))
+	char *newPage = (char *)calloc(PAGE_SIZE, sizeof(char));
+	fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
+	if (fwrite(newPage, PAGE_SIZE, 1, fHandle->mgmtInfo))
 	{
-		fHandle->totalNumPages +=1;
+		fHandle->totalNumPages += 1;
 		fHandle->curPagePos = fHandle->totalNumPages - 1;
-		fseek(fHandle->mgmtInfo,0L,SEEK_SET);
+		fseek(fHandle->mgmtInfo, 0L, SEEK_SET);
 		fprintf(fHandle->mgmtInfo, "%d", fHandle->totalNumPages);
-		fseek(fHandle->mgmtInfo,(fHandle->totalNumPages+1)*PAGE_SIZE,SEEK_SET);
+		fseek(fHandle->mgmtInfo, (fHandle->totalNumPages + 1) * PAGE_SIZE, SEEK_SET);
 		free(newPage);
 		return RC_OK;
 	}
@@ -258,19 +279,22 @@ RC appendEmptyBlock(SM_FileHandle* fHandle)
 // 1. Check to see if there is a difference in pages with memory and disk.
 // 2. If there are more pages in memory, then write to the disk 1 empty file.
 */
-RC ensureCapacity (int numberOfPages , SM_FileHandle * fHandle ) {
-	// Validation	
-	if (fHandle == NULL) return RC_FILE_HANDLE_NOT_INIT;
-	if (fHandle->mgmtInfo == NULL) return RC_FILE_NOT_FOUND;
+RC ensureCapacity(int numberOfPages, SM_FileHandle *fHandle)
+{
+	// Validation
+	if (fHandle == NULL)
+		return RC_FILE_HANDLE_NOT_INIT;
+	if (fHandle->mgmtInfo == NULL)
+		return RC_FILE_NOT_FOUND;
 
 	// Action
 	int itr = 0;
-	for (itr = fHandle->totalNumPages; itr < numberOfPages; ++itr) {
+	for (itr = fHandle->totalNumPages; itr < numberOfPages; ++itr)
+	{
 		appendEmptyBlock(fHandle);
 	}
 	return RC_OK;
 }
-
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
@@ -281,7 +305,7 @@ Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
 */
 bool checkValidPageNumber(int pageNum, int totalNumberOfPagesInTheFile)
 {
-	return ((pageNum<0) & (pageNum> totalNumberOfPagesInTheFile)) ? false : true;
+	return ((pageNum < 0) & (pageNum > totalNumberOfPagesInTheFile)) ? false : true;
 }
 
 /*
@@ -315,10 +339,9 @@ void setCurrentPosition(int pageNumber, SM_FileHandle *fHandle)
 	fHandle->curPagePos = pageNumber;
 }
 
-
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method reads the page block of the input page number 
+1. This method reads the page block of the input page number
 2. Inputs- page number which needs to be retrieved, fileHandle and pageHandle
 3. returns - Returns code as per the result
 */
@@ -326,38 +349,38 @@ RC readBlock(int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int resultOfSeek, resultOfRead, totalNumberOfPagesInTheFile;
 	totalNumberOfPagesInTheFile = fHandle->totalNumPages;
-	//Checks if the fhandle is valid and returns error code if its not initialized
+	// Checks if the fhandle is valid and returns error code if its not initialized
 	if (!checkValidfHandle(fHandle))
 		return RC_FILE_HANDLE_NOT_INIT;
-		
-	//Checks if the input page number is valid and returns error code if its not exist
+
+	// Checks if the input page number is valid and returns error code if its not exist
 	if (!checkValidPageNumber(pageNum, totalNumberOfPagesInTheFile))
 		return RC_READ_NON_EXISTING_PAGE;
 
-	//Checks if the management info is valid and returns error code if its not exist
+	// Checks if the management info is valid and returns error code if its not exist
 	if (!checkValidMgmtInfo(fHandle))
 		return RC_FILE_NOT_FOUND;
-	int increPageNum = pageNum+1;
-	//File seek is performed on the file with page number and returns error if the seek result is not valid
-	resultOfSeek = fseek(fHandle->mgmtInfo, increPageNum *PAGE_SIZE, SEEK_SET);
+	int increPageNum = pageNum + 1;
+	// File seek is performed on the file with page number and returns error if the seek result is not valid
+	resultOfSeek = fseek(fHandle->mgmtInfo, increPageNum * PAGE_SIZE, SEEK_SET);
 	if (!checkValidSeek)
 		return RC_ERROR;
-	
-	//File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
+
+	// File read is performed on the file with page number and loaded into the memory. This returns error if the seek result is not valid
 	resultOfRead = fread(memPage, sizeof(char), PAGE_SIZE, fHandle->mgmtInfo);
 	if (!checkValidRead(resultOfRead))
 		return RC_READ_FAILED;
 
-	//Sets the page number to the current page postion in fHandle
+	// Sets the page number to the current page postion in fHandle
 	setCurrentPosition(pageNum, fHandle);
 
-	//return RC_OK code if the able to read the file without any exception
+	// return RC_OK code if the able to read the file without any exception
 	return RC_OK;
 }
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method gets the current postion of the file in the file handle 
+1. This method gets the current postion of the file in the file handle
 2. Inputs- page number which needs to be retrieved, fileHandle and pageHandle
 3. returns the current page position if no exception
 */
@@ -367,7 +390,7 @@ int getBlockPos(SM_FileHandle *fHandle)
 	{
 		if (checkValidMgmtInfo(fHandle))
 		{
-			//returns the current page position in the 
+			// returns the current page position in the
 			return fHandle->curPagePos;
 		}
 		else
@@ -383,7 +406,7 @@ int getBlockPos(SM_FileHandle *fHandle)
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method reads the first page of the file in the memory 
+1. This method reads the first page of the file in the memory
 2. Inputs- fileHandle and pageHandle
 3. Output - reads the first page of the file to the memory and returns RC_OK if no exception
 */
@@ -394,7 +417,7 @@ RC readFirstBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 	{
 		if (checkValidMgmtInfo(fHandle))
 		{
-			//first page position is sent to the read block and read into the memory
+			// first page position is sent to the read block and read into the memory
 			return readBlock(firstPageNumber, fHandle, memPage);
 		}
 	}
@@ -403,7 +426,7 @@ RC readFirstBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method takes the current page postion and reads the previous page to the memory 
+1. This method takes the current page postion and reads the previous page to the memory
 2. Inputs- fileHandle and pageHandle
 3. Output - reads the previous page of the file to the memory and returns RC_OK if no exception
 */
@@ -411,13 +434,13 @@ RC readPreviousBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int currentPosValue = getBlockPos(fHandle);
 
-	//Previous page postion is sent to the readblock and read into the memory page
+	// Previous page postion is sent to the readblock and read into the memory page
 	return readBlock(currentPosValue - 1, fHandle, memPage);
 }
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method reads the current page of the file in the memory 
+1. This method reads the current page of the file in the memory
 2. Inputs- fileHandle and pageHandle
 3. Output - reads the current page of the file to the memory and returns RC_OK if no exception
 */
@@ -425,13 +448,13 @@ RC readCurrentBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int currentPosValue = getBlockPos(fHandle);
 
-	//gets the current position using getBlockPos method and sent tot he readblock to load the current page to the memory
+	// gets the current position using getBlockPos method and sent tot he readblock to load the current page to the memory
 	return readBlock(currentPosValue, fHandle, memPage);
 }
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method reads the next page of the file in the memory 
+1. This method reads the next page of the file in the memory
 2. Inputs- fileHandle and pageHandle
 3. Output - reads the next page of the file to the memory and returns RC_OK if no exception
 */
@@ -439,13 +462,13 @@ RC readNextBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int currentPosValue = getBlockPos(fHandle);
 
-	//gets the current page position using getBlockPos method and added one to read the next page to the memory
+	// gets the current page position using getBlockPos method and added one to read the next page to the memory
 	return readBlock(currentPosValue + 1, fHandle, memPage);
 }
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method reads the last page of the file in the memory 
+1. This method reads the last page of the file in the memory
 2. Inputs- fileHandle and pageHandle
 3. Output - reads the last page of the file to the memory and returns RC_OK if no exception
 */
@@ -453,12 +476,9 @@ RC readLastBlock(SM_FileHandle *fHandle, SM_PageHandle memPage)
 {
 	int lastPageNumber;
 
-	//gets the total number of page from the file handle
+	// gets the total number of page from the file handle
 	lastPageNumber = fHandle->totalNumPages;
 
-	//reads the last page position in the file and loads into the memory
+	// reads the last page position in the file and loads into the memory
 	return readBlock(lastPageNumber - 1, fHandle, memPage);
 }
-
-
-

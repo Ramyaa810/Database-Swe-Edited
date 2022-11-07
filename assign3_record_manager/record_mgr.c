@@ -959,29 +959,5 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
 		break;
 	}
-
-	// if (schema->dataTypes[attrNum] == DT_INT)
-	// {
-	// 	memcpy(attrData, &(value->v.intV), sizeof(int));
-	// }
-
-	// else if (schema->dataTypes[attrNum] == DT_STRING)
-	// {
-	// 	char *buf;
-	// 	int len = schema->typeLength[attrNum];
-	// 	buf = (char *)malloc(len);
-	// 	buf = value->v.stringV;
-	// 	buf[len] = '\0';
-	// 	memcpy(attrData, buf, len);
-	// }
-	// else if (schema->dataTypes[attrNum] == DT_FLOAT)
-	// 	memcpy(attrData, &(value->v.floatV), sizeof(float));
-
-	// else if (schema->dataTypes[attrNum] == DT_BOOL)
-	// 	memcpy(attrData, &(value->v.boolV), sizeof(bool));
-
-	// else
-	// 	return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
-
 	return RC_OK;
 }
