@@ -307,6 +307,17 @@ RC attrOffset(Schema *schema, int attrNum, int *result)
 	return RC_OK;
 }
 
+
+char *createCharObject1()
+{
+	return (char *)malloc(sizeof(char *));
+}
+
+Record *createRecordObject1()
+{
+	return (Record *)malloc(sizeof(Record *));
+}
+
 Schema *createSchemaObject1()
 {
 	return (Schema *)malloc(sizeof(Schema));
@@ -451,16 +462,6 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	free(end);
 
 	return schema;
-}
-
-char *createCharObject1()
-{
-	return (char *)malloc(sizeof(char *));
-}
-
-Record *createRecordObject1()
-{
-	return (Record *)malloc(sizeof(Record *));
 }
 
 Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
