@@ -247,7 +247,7 @@ RC openTable(RM_TableData *rel, char *name)
 //frees all the attributes once the table is closed
 void freeAttr(RecordManager *recordManager, RM_TableData *rel)
 {
-	char *attrName = rel->schema->attrNames;
+	char **attrName = rel->schema->attrNames;
 	DataType *dataType = rel->schema->dataTypes;
 	int *keyAttrs = rel->schema->keyAttrs;
 	int *typeLength = rel->schema->typeLength;
