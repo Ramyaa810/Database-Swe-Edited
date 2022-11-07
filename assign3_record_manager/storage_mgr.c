@@ -236,21 +236,10 @@ RC appendEmptyBlock(SM_FileHandle *fHandle)
 	if (!checkValidMgmtInfo(fHandle))
 		return RC_FILE_NOT_FOUND;
 
-	// char *fn = fHandle->fileName;
-	// SM_PageHandle emptyPage = getEmptyPageHandle();
-	// fileSeekOperation(emptyPage,fn);
-	// assignFileHandle(fHandle, fn, fHandle->mgmtInfo);
-	// return RC_OK;
-
-	// if (!checkValidfHandle(fHandle))
-	// 	return RC_FILE_HANDLE_NOT_INIT;
-	// if (!checkValidMgmtInfo(fHandle))
-	// 	return RC_FILE_NOT_FOUND;
 	int one = 1;
 	int tnp = fHandle->totalNumPages;
 	int page = tnp + one;
 	char *pg = createCharObject();
-	//(char *)calloc(PAGE_SIZE, sizeof(char));
 	fseek(fHandle->mgmtInfo, page * PAGE_SIZE, SEEK_SET);
 	if (fwrite(pg, PAGE_SIZE, 1, fHandle->mgmtInfo))
 	{
