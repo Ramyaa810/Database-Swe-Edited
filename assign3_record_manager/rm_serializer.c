@@ -347,12 +347,25 @@ bool compareStrString(char *end)
 	return (strcmp(end, "STRING") == 0) ? true : false;
 }
 
-
 Schema *AssignToSchema(Schema *schema, int n, int index, DataType dt)
 {
 	schema->typeLength[index] = n;
 	schema->dataTypes[index] = DT_STRING;
 	return schema;
+}
+
+char *stringCompare(int i, char *serializedSchemaData)
+{
+	if (i = 1)
+	{
+		return strtok(serializedSchemaData, "<");
+	}
+	else if (i = 2)
+	{
+		return strtok(NULL, ">");
+	}
+	// start = strtok(serializedSchemaData, "<");
+	// end = strtok(NULL, ">");
 }
 Schema *deserializeSchema(char *serializedSchemaData)
 {
@@ -376,8 +389,10 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	end = createCharObject1();
 	splitchar = createCharObject1();
 
-	start = strtok(serializedSchemaData, "<");
-	end = strtok(NULL, ">");
+	start = stringCompare(1,serializedSchemaData);
+	// strtok(serializedSchemaData, "<");
+	end = stringCompare(2,NULL); 
+	//strtok(NULL, ">");
 
 	AttrNum = strtol(end, &start, 10);
 
@@ -391,11 +406,11 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 	AttrLast = AttrNum - one;
 
-	for (i = 0; i < AttrNum; i++)
+	for (i = zero; i < AttrNum; i = i + 1)
 	{
 		end = strtok(NULL, ": ");
 
-		schema->attrNames[i] = (char *)malloc(sizeof(char *));
+		schema->attrNames[i] = createCharObject1();
 
 		strcpy(schema->attrNames[i], end);
 
@@ -452,7 +467,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		{
 			keyAttr[numOfKeys] = createCharObject1();
 			strcpy(keyAttr[numOfKeys], splitKey);
-			numOfKeys++;
+			numOfKeys = numOfKeys + 1;
 			splitKey = strtok(NULL, ", ");
 		}
 
@@ -486,7 +501,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			n = atoi(splitchar);
 			splitchar = strtok(NULL, "=");
 			index = atoi(splitchar);
-			schema = AssignToSchema(schema,n,index,DT_STRING);
+			schema = AssignToSchema(schema, n, index, DT_STRING);
 			// schema->typeLength[index] = n;
 			// schema->dataTypes[index] = DT_STRING;
 		}
@@ -500,7 +515,6 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	free(start);
 	return schema;
 }
-
 
 Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 {
