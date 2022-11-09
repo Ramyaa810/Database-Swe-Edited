@@ -346,6 +346,14 @@ bool compareStrString(char *end)
 {
 	return (strcmp(end, "STRING") == 0) ? true : false;
 }
+
+
+Schema *AssignToSchema(Schema *schema, int n, int index, DataType dt)
+{
+	schema->typeLength[index] = n;
+	schema->dataTypes[index] = DT_STRING;
+	return schema;
+}
 Schema *deserializeSchema(char *serializedSchemaData)
 {
 	VarString *result;
@@ -391,7 +399,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 		strcpy(schema->attrNames[i], end);
 
-		if (compareAttrLast(i,AttrLast))
+		if (compareAttrLast(i, AttrLast))
 		{
 			end = strtok(NULL, ", ");
 		}
@@ -426,7 +434,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 			stringParam = NULL;
 			free(stringParam);
-		}		
+		}
 	}
 
 	if ((end = strtok(NULL, "(")) != NULL)
@@ -478,8 +486,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			n = atoi(splitchar);
 			splitchar = strtok(NULL, "=");
 			index = atoi(splitchar);
-			schema->typeLength[index] = n;
-			schema->dataTypes[index] = DT_STRING;			
+			schema = AssignToSchema(schema,n,index,DT_STRING);
+			// schema->typeLength[index] = n;
+			// schema->dataTypes[index] = DT_STRING;
 		}
 	}
 
@@ -491,6 +500,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	free(start);
 	return schema;
 }
+
 
 Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 {
