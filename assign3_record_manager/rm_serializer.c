@@ -367,7 +367,7 @@ char *stringCompare(int i, char *serializedSchemaData)
 	// start = strtok(serializedSchemaData, "<");
 	// end = strtok(NULL, ">");
 }
-Schema *deserializeSchema(char *serializedSchemaData)
+Schema *deserializeSchema(char *schemaData)
 {
 	VarString *result;
 
@@ -389,18 +389,15 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	end = createCharObject1();
 	splitchar = createCharObject1();
 
-	//start = stringCompare(1,serializedSchemaData);
-	 start = strtok(serializedSchemaData, "<");
-	//end = stringCompare(2,NULL); 
+	 start = strtok(schemaData, "<");
 	end = strtok(NULL, ">");
 
 	AttrNum = strtol(end, &start, 10);
 
+	schema->typeLength = (int*)malloc(sizeof(int) * AttrNum);
 	schema->numAttr = AttrNum;
-
-	schema->typeLength = (int *)malloc(sizeof(int) * AttrNum);
-	schema->attrNames = (char **)malloc(sizeof(char *) * AttrNum);
-	schema->dataTypes = (DataType *)malloc(sizeof(DataType) * AttrNum);
+	schema->dataTypes = (DataType*)malloc(sizeof(DataType) * AttrNum);
+	schema->attrNames = (char**)malloc(sizeof(char*) * AttrNum);
 
 	end = strtok(NULL, "(");
 
@@ -454,10 +451,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 	if ((end = strtok(NULL, "(")) != NULL)
 	{
-
-		char *key;
+		char *key; 
+		int totalKeys = zero;;
 		char *keyAttr[AttrNum];
-		int totalKeys = zero;
 
 		end = strtok(NULL, ")");
 		key = createCharObject1();
