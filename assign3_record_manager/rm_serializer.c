@@ -360,11 +360,6 @@ void callStringconcat(char *stringParam, char *splitchar, int i)
 	strcat(splitchar, stringParam);
 }
 
-int AssignAttrNum(int AttrNum)
-{
-	return AttrNum;
-}
-
 Schema *deserializeSchema(char *serializedSchemaData)
 {
 	VarString *result;
@@ -391,7 +386,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 	AttrNum = strtol(end, &start, 10);
 
-	schema->numAttr = AssignAttrNum(AttrNum);
+	schema->numAttr = AttrNum;
 
 	schema->typeLength = (int *)malloc(sizeof(int) * AttrNum);
 	schema->attrNames = (char **)malloc(sizeof(char *) * AttrNum);
