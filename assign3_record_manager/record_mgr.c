@@ -63,20 +63,6 @@ void ModifyPageDetails(RM_TableData *rel, BM_PageHandle *page)
 	forcePageInfo(rel, page);
 }
 
-/*
- * Function: attrituteOffset
- * ---------------------------
- * This method calculates the offset associated with each attribute
- * by taking size of each attribute datatype.
- *
- * schema : Management structure to maintain schema details.
- * result : Used to store the offset.
- * attrNum : Number of attributes.
- *
- * returns : RC_OK if all steps in attributeOffSet are successful.
- *
- */
-
 RC SetOffAttrValue(Schema *schema, int attrNum, int *result)
 {
 	int value = 0;
@@ -515,23 +501,6 @@ RM_ScanManager *AssignScanManager(RM_ScanManager *scanManager)
 	return sm;
 }
 
-/*
-SCANS
-*/
-
-/*
- * Function: startScan
- * ---------------------------
- * This function is used to start scanning the table using scan management structure.
- *
- *
- * rel: Management Structure for a Record Manager to handle one relation.
- * scan_mgmt: holds the scan management data
- *
- * returns : RC_OK if initializing scan is successful.
- *
- */
-
 RC startScan(RM_TableData *rel, RM_ScanHandle *scan, Expr *cond)
 {
 	int zero = 0;
@@ -583,19 +552,7 @@ int AssignCurrentPageNext(RM_ScanHandle *scan)
 	return page;
 }
 
-/*
- * Function: next
- * ---------------------------
- * This function is used with the above function to perform the scan function
- *
- *
- * rid: Record identifier.
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if scan operation is successful.
- *			 RC_RM_NO_MORE_TUPLES if no tuples are available to scan.
- *
- */
+
 RC next(RM_ScanHandle *scan, Record *record)
 {
 	Value *result;
@@ -662,16 +619,6 @@ RM_ScanHandle *returnNullScan()
 	return NULL;
 }
 
-/*
- * Function: closeScan
- * ---------------------------
- * This function is used to clean all the resources used by the record manager
- *
- * scan_mgmt: holds the scan management data
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if closing the scan operation is successful.
- */
 
 RC closeScan(RM_ScanHandle *scan)
 {
@@ -767,20 +714,6 @@ RC freeSchema(Schema *schema)
 	return RC_OK;
 }
 
-/*
- * DEALING WITH RECORDS AND ATTRIBUTE VALUES
- */
-
-/*
- * Function: createRecord
- * ---------------------------
- * This function is used to create a record for the table by allocating memory.
- *
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if creation of record is successful.
- *
- */
 
 RC createRecord(Record **rec, Schema *schema)
 {
@@ -796,18 +729,7 @@ RC createRecord(Record **rec, Schema *schema)
 	return RC_OK;
 }
 
-/*
- * Function: freeRecord
- * ---------------------------
- * This function is used to free a record from the table and the data associated with it.
- *
- *
- * data: data stored in the record
- * record: Management Structure for a Record to store rid and data of a tuple.
- *
- * returns : RC_OK if freeing the record is successful.
- *
- */
+
 RC freeRecord(Record *record)
 {
 	printf("free record is started\n");
@@ -822,18 +744,6 @@ RC freeRecord(Record *record)
 	}
 }
 
-/*
- * Function: getAttr
- * ---------------------------
- * This function is get the attribute associated with the schema.
- *
- * offset: offset value of the attribute
- * attrData: data corresponding to the attribute
- * value: attribute value derived from the offset
- *
- * returns : RC_OK if the attribute is fetched properly.
- * 			 RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE if the datatype is not correct
- */
 
 RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 {
@@ -878,20 +788,6 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 
 	return RC_OK;
 }
-
-/*
- * Function: setAttr
- * ---------------------------
- * This function is set the attributes inside a record.
- *
- * offset: offset value of the attribute
- * attrData: data corresponding to the attribute
- * value: attribute value derived from the offset
- *
- * returns : RC_OK if the attribute is fetched properly.
- * 			 RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE if the datatype is not correct
- *
- */
 
 RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 {

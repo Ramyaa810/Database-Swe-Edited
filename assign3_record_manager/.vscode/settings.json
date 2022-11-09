@@ -29,6 +29,7 @@
     "**/.vscode/**"
   ],
   "files.associations": {
-    "buffer_mgr.h": "c"
+    "buffer_mgr.h": "c",
+    "storage_mgr.h": "c"
   }
 }
