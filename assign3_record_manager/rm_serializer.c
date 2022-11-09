@@ -433,9 +433,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			char *stringParam;
 			strcpy(splitchar, end);
 			stringParam = createCharObject1();
-			callStringconcat(stringParam, splitchar, i);
-			//  sprintf(stringParam, "%d", i);
-			//  strcat(splitchar, stringParam);
+			//callStringconcat(stringParam, splitchar, i);
+			 sprintf(stringParam, "%d", i);
+			 strcat(splitchar, stringParam);
 
 			stringParam = NULL;
 			free(stringParam);
