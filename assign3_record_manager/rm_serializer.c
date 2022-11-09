@@ -375,48 +375,19 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		{
 			end = strtok(NULL, ") ");
 		}
-		char val = end;
-		switch (val)
-		{
-		case DT_FLOAT:
-			schema->dataTypes[i] = DT_FLOAT;
-			schema->typeLength[i] = zero;
-		case DT_INT:
-			schema->dataTypes[i] = DT_INT;
-			schema->typeLength[i] = zero;
-		case DT_BOOL:
-			schema->dataTypes[i] = DT_BOOL;
-			schema->typeLength[i] = zero;
-		default:
-			strcpy(splitchar, end);
-
-			char *str;
-			str = (char *)malloc(sizeof(char));
-
-			sprintf(str, "%d", i);
-			strcat(splitchar, str);
-
-			str = NULL;
-			free(str);
-		}
-
-		// if (strcmp(end, "FLOAT") == zero)
+		// char val = end;
+		// switch (val)
 		// {
+		// case DT_FLOAT:
 		// 	schema->dataTypes[i] = DT_FLOAT;
 		// 	schema->typeLength[i] = zero;
-		// }
-		// else if (strcmp(end, "INT") == zero)
-		// {
+		// case DT_INT:
 		// 	schema->dataTypes[i] = DT_INT;
 		// 	schema->typeLength[i] = zero;
-		// }
-		// else if (strcmp(end, "BOOL") == zero)
-		// {
+		// case DT_BOOL:
 		// 	schema->dataTypes[i] = DT_BOOL;
 		// 	schema->typeLength[i] = zero;
-		// }
-		// else
-		// {
+		// default:
 		// 	strcpy(splitchar, end);
 
 		// 	char *str;
@@ -428,6 +399,35 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		// 	str = NULL;
 		// 	free(str);
 		// }
+
+		if (strcmp(end, "FLOAT") == zero)
+		{
+			schema->dataTypes[i] = DT_FLOAT;
+			schema->typeLength[i] = zero;
+		}
+		else if (strcmp(end, "INT") == zero)
+		{
+			schema->dataTypes[i] = DT_INT;
+			schema->typeLength[i] = zero;
+		}
+		else if (strcmp(end, "BOOL") == zero)
+		{
+			schema->dataTypes[i] = DT_BOOL;
+			schema->typeLength[i] = zero;
+		}
+		else
+		{
+			strcpy(splitchar, end);
+
+			char *str;
+			str = (char *)malloc(sizeof(char));
+
+			sprintf(str, "%d", i);
+			strcat(splitchar, str);
+
+			str = NULL;
+			free(str);
+		}
 	}
 
 	// to check ifkeys are present
