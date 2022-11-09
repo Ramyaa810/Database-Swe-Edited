@@ -400,14 +400,16 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		// 	free(str);
 		// }
 
-		if (strcmp(end, "FLOAT") == zero)
-		{
-			schema->dataTypes[i] = DT_FLOAT;
-			schema->typeLength[i] = zero;
-		}
-		else if (strcmp(end, "INT") == zero)
+		if (strcmp(end, "INT") == zero)
 		{
 			schema->dataTypes[i] = DT_INT;
+			schema->typeLength[i] = zero;
+		}
+		else if (strcmp(end, "FLOAT") == zero)
+		{
+			
+
+			schema->dataTypes[i] = DT_FLOAT;
 			schema->typeLength[i] = zero;
 		}
 		else if (strcmp(end, "BOOL") == zero)
@@ -428,6 +430,35 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			str = NULL;
 			free(str);
 		}
+
+		// if (strcmp(end, "FLOAT") == zero)
+		// {
+		// 	schema->dataTypes[i] = DT_FLOAT;
+		// 	schema->typeLength[i] = zero;
+		// }
+		// else if (strcmp(end, "INT") == zero)
+		// {
+		// 	schema->dataTypes[i] = DT_INT;
+		// 	schema->typeLength[i] = zero;
+		// }
+		// else if (strcmp(end, "BOOL") == zero)
+		// {
+		// 	schema->dataTypes[i] = DT_BOOL;
+		// 	schema->typeLength[i] = zero;
+		// }
+		// else
+		// {
+		// 	strcpy(splitchar, end);
+
+		// 	char *str;
+		// 	str = (char *)malloc(sizeof(char));
+
+		// 	sprintf(str, "%d", i);
+		// 	strcat(splitchar, str);
+
+		// 	str = NULL;
+		// 	free(str);
+		// }
 	}
 
 	// to check ifkeys are present
