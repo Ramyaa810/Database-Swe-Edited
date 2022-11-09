@@ -362,7 +362,7 @@ char *stringCompare(int i, char *serializedSchemaData)
 	}
 	else if (i = 2)
 	{
-		return strtok(NULL, ">");
+		return strtok(serializedSchemaData, ">");
 	}
 	// start = strtok(serializedSchemaData, "<");
 	// end = strtok(NULL, ">");
@@ -389,10 +389,10 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	end = createCharObject1();
 	splitchar = createCharObject1();
 
-	//start = stringCompare(1,serializedSchemaData);
-	 start = strtok(serializedSchemaData, "<");
-	//end = stringCompare(2,NULL); 
-	end = strtok(NULL, ">");
+	start = stringCompare(1,serializedSchemaData);
+	 //start = strtok(serializedSchemaData, "<");
+	end = stringCompare(2,NULL); 
+	//end = strtok(NULL, ">");
 
 	AttrNum = strtol(end, &start, 10);
 
