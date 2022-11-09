@@ -470,26 +470,25 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	if (strlen(splitchar) != zero)
 	{
 		splitchar = strtok(splitchar, "[");
-		if (strcmp(splitchar, "STRING") == zero)
+		if (compareStrString(splitchar))
 		{
-			int val, index;
+			int n;
+			int index;
 			splitchar = strtok(NULL, "]");
-			val = atoi(splitchar);
+			n = atoi(splitchar);
 			splitchar = strtok(NULL, "=");
 			index = atoi(splitchar);
-			schema->dataTypes[index] = DT_STRING;
-
-			schema->typeLength[index] = val;
+			schema->typeLength[index] = n;
+			schema->dataTypes[index] = DT_STRING;			
 		}
 	}
 
+	end = NULL;
+	free(end);
 	splitchar = NULL;
 	free(splitchar);
 	start = NULL;
 	free(start);
-	end = NULL;
-	free(end);
-
 	return schema;
 }
 
