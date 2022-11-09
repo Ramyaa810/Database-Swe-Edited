@@ -491,9 +491,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			n = atoi(splitchar);
 			splitchar = strtok(NULL, "=");
 			index = atoi(splitchar);
-			schema = AssignToSchema(schema, n, index, DT_STRING);
-			// schema->typeLength[index] = n;
-			// schema->dataTypes[index] = DT_STRING;
+			//schema = AssignToSchema(schema, n, index, DT_STRING);
+			schema->typeLength[index] = n;
+			schema->dataTypes[index] = DT_STRING;
 		}
 	}
 
