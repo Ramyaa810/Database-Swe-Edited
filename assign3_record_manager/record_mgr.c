@@ -314,7 +314,7 @@ int getNumTuples(RM_TableData *rel)
 	return total;
 }
 
-char callSerializeRecord(Record *record, RM_TableData *rel)
+char *callSerializeRecord(Record *record, RM_TableData *rel)
 {
 	return serializeRecord(record, rel->schema);
 }
