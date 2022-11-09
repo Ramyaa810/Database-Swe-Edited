@@ -354,12 +354,19 @@ Schema *AssignToSchema(Schema *schema, int n, int index, DataType dt)
 	return schema;
 }
 
-void callStringconcat(char *stringParam, char *splitchar, int i)
+char *stringCompare(int i, char *serializedSchemaData)
 {
-	sprintf(stringParam, "%d", i);
-	strcat(splitchar, stringParam);
+	if (i = 1)
+	{
+		return strtok(serializedSchemaData, "<");
+	}
+	else if (i = 2)
+	{
+		return strtok(serializedSchemaData, ">");
+	}
+	// start = strtok(serializedSchemaData, "<");
+	// end = strtok(NULL, ">");
 }
-
 Schema *deserializeSchema(char *serializedSchemaData)
 {
 	VarString *result;
@@ -381,8 +388,11 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	start = createCharObject1();
 	end = createCharObject1();
 	splitchar = createCharObject1();
+
+	//start = stringCompare(1,serializedSchemaData);
+	 start = strtok(serializedSchemaData, "<");
+	//end = stringCompare(2,NULL); 
 	end = strtok(NULL, ">");
-	start = strtok(serializedSchemaData, "<");
 
 	AttrNum = strtol(end, &start, 10);
 
@@ -433,9 +443,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			char *stringParam;
 			strcpy(splitchar, end);
 			stringParam = createCharObject1();
-			//callStringconcat(stringParam, splitchar, i);
-			 sprintf(stringParam, "%d", i);
-			 strcat(splitchar, stringParam);
+
+			sprintf(stringParam, "%d", i);
+			strcat(splitchar, stringParam);
 
 			stringParam = NULL;
 			free(stringParam);
@@ -491,9 +501,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			n = atoi(splitchar);
 			splitchar = strtok(NULL, "=");
 			index = atoi(splitchar);
-			//schema = AssignToSchema(schema, n, index, DT_STRING);
-			schema->typeLength[index] = n;
-			schema->dataTypes[index] = DT_STRING;
+			schema = AssignToSchema(schema, n, index, DT_STRING);
+			// schema->typeLength[index] = n;
+			// schema->dataTypes[index] = DT_STRING;
 		}
 	}
 
