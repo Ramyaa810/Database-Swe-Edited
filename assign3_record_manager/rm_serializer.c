@@ -312,6 +312,11 @@ char *createCharObject1()
 	return (char *)malloc(sizeof(char *));
 }
 
+char *createIntObject1(int AttrNum)
+{
+	return (int *)malloc(sizeof(int) * AttrNum);
+}
+
 Record *createRecordObject1()
 {
 	return (Record *)malloc(sizeof(Record *));
@@ -381,17 +386,15 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	start = createCharObject1();
 	end = createCharObject1();
 	splitchar = createCharObject1();
-
-	// start = stringCompare(1,serializedSchemaData);
-	start = strtok(serializedSchemaData, "<");
-	// end = stringCompare(2,NULL);
 	end = strtok(NULL, ">");
+	start = strtok(serializedSchemaData, "<");
 
 	AttrNum = strtol(end, &start, 10);
 
 	schema->numAttr = AttrNum;
 
-	schema->typeLength = (int *)malloc(sizeof(int) * AttrNum);
+	schema->typeLength = createIntObject1(AttrNum);
+	//schema->typeLength = (int *)malloc(sizeof(int) * AttrNum);
 	schema->attrNames = (char **)malloc(sizeof(char *) * AttrNum);
 	schema->dataTypes = (DataType *)malloc(sizeof(DataType) * AttrNum);
 
