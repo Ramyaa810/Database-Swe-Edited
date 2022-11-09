@@ -398,10 +398,10 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			strcpy(splitchar, end);
 			stringParam = createCharObject1();
 
-			//sprintf(stringParam, "%d", i);
+			sprintf(stringParam, "%d", i);
 			strcat(splitchar, stringParam);
 
-			//stringParam = NULL;
+			stringParam = NULL;
 			free(stringParam);
 		}		
 	}
