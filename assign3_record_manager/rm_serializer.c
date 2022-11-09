@@ -389,10 +389,10 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	end = createCharObject1();
 	splitchar = createCharObject1();
 
-	start = stringCompare(1,serializedSchemaData);
-	 //start = strtok(serializedSchemaData, "<");
-	end = stringCompare(2,NULL); 
-	//end = strtok(NULL, ">");
+	//start = stringCompare(1,serializedSchemaData);
+	 start = strtok(serializedSchemaData, "<");
+	//end = stringCompare(2,NULL); 
+	end = strtok(NULL, ">");
 
 	AttrNum = strtol(end, &start, 10);
 
@@ -444,10 +444,10 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			strcpy(splitchar, end);
 			stringParam = createCharObject1();
 
-			sprintf(stringParam, "%d", i);
+			//sprintf(stringParam, "%d", i);
 			strcat(splitchar, stringParam);
 
-			stringParam = NULL;
+			//stringParam = NULL;
 			free(stringParam);
 		}
 	}
@@ -455,29 +455,29 @@ Schema *deserializeSchema(char *serializedSchemaData)
 	if ((end = strtok(NULL, "(")) != NULL)
 	{
 
-		char *splitKey;
+		char *key;
 		char *keyAttr[AttrNum];
-		int numOfKeys = zero;
+		int totalKeys = zero;
 
 		end = strtok(NULL, ")");
-		splitKey = createCharObject1();
-		splitKey = strtok(end, ", ");
+		key = createCharObject1();
+		key = strtok(end, ", ");
 
-		while (splitKey != NULL)
+		while (key != NULL)
 		{
-			keyAttr[numOfKeys] = createCharObject1();
-			strcpy(keyAttr[numOfKeys], splitKey);
-			numOfKeys = numOfKeys + 1;
-			splitKey = strtok(NULL, ", ");
+			keyAttr[totalKeys] = createCharObject1();
+			strcpy(keyAttr[totalKeys], key);
+			totalKeys = totalKeys + 1;
+			key = strtok(NULL, ", ");
 		}
 
-		splitKey = NULL;
-		free(splitKey);
+		key = NULL;
+		free(key);
 
-		schema->keyAttrs = (int *)malloc(sizeof(int) * numOfKeys);
-		schema->keySize = numOfKeys;
+		schema->keyAttrs = (int *)malloc(sizeof(int) * totalKeys);
+		schema->keySize = totalKeys;
 
-		for (i = zero; i < numOfKeys; i++)
+		for (i = zero; i < totalKeys; i++)
 		{
 			for (j = zero; j < AttrNum; j++)
 			{
