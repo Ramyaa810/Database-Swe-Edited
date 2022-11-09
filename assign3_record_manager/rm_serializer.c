@@ -321,6 +321,31 @@ Schema *createSchemaObject1()
 {
 	return (Schema *)malloc(sizeof(Schema));
 }
+
+bool compareAttrLast(int i, int AttrLast)
+{
+	return (i != AttrLast) ? true : false;
+}
+
+bool compareStrInt(char *end)
+{
+	return (strcmp(end, "INT") == 0) ? true : false;
+}
+
+bool compareStrFloat(char *end)
+{
+	return (strcmp(end, "FLOAT") == 0) ? true : false;
+}
+
+bool compareStrBool(char *end)
+{
+	return (strcmp(end, "BOOL") == 0) ? true : false;
+}
+
+bool compareStrString(char *end)
+{
+	return (strcmp(end, "STRING") == 0) ? true : false;
+}
 Schema *deserializeSchema(char *serializedSchemaData)
 {
 	VarString *result;
@@ -366,7 +391,7 @@ Schema *deserializeSchema(char *serializedSchemaData)
 
 		strcpy(schema->attrNames[i], end);
 
-		if (i != AttrLast)
+		if (compareAttrLast(i,AttrLast))
 		{
 			end = strtok(NULL, ", ");
 		}
@@ -375,19 +400,17 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		{
 			end = strtok(NULL, ") ");
 		}
-		if (strcmp(end, "INT") == zero)
+		if (compareStrInt(end))
 		{
 			schema->dataTypes[i] = DT_INT;
 			schema->typeLength[i] = zero;
 		}
-		else if (strcmp(end, "FLOAT") == zero)
+		else if (compareStrFloat(end))
 		{
-			
-
 			schema->dataTypes[i] = DT_FLOAT;
 			schema->typeLength[i] = zero;
 		}
-		else if (strcmp(end, "BOOL") == zero)
+		else if (compareStrBool(end))
 		{
 			schema->dataTypes[i] = DT_BOOL;
 			schema->typeLength[i] = zero;
