@@ -222,7 +222,7 @@ RC openTable(RM_TableData *rel, char *name)
 	recordManager->freePages = (int *)malloc(sizeof(int));
 	recordManager->freePages[0] = totalNumberOfPages;
 	rel->name = name;
-	rel->schema = deserializeSchema(page->data);
+	//rel->schema = deserializeSchema(page->data);
 	rel->mgmtData = recordManager;
 	free(page);
 	free(readHeader);

@@ -87,7 +87,7 @@ extern char *serializeSchema(Schema *schema);
 extern char *serializeRecord(Record *record, Schema *schema);
 extern char *serializeAttr(Record *record, Schema *schema, int attrNum);
 extern char *serializeValue(Value *val);
-extern Schema *deserializeSchema(char *serializedSchemaData);
+//extern Schema *deserializeSchema(char *serializedSchemaData);
 extern Record *deserializeRecord(char *deserialize_record_str, Schema *schema);
 
 #endif

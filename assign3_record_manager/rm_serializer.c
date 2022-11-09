@@ -375,31 +375,6 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		{
 			end = strtok(NULL, ") ");
 		}
-		// char val = end;
-		// switch (val)
-		// {
-		// case DT_FLOAT:
-		// 	schema->dataTypes[i] = DT_FLOAT;
-		// 	schema->typeLength[i] = zero;
-		// case DT_INT:
-		// 	schema->dataTypes[i] = DT_INT;
-		// 	schema->typeLength[i] = zero;
-		// case DT_BOOL:
-		// 	schema->dataTypes[i] = DT_BOOL;
-		// 	schema->typeLength[i] = zero;
-		// default:
-		// 	strcpy(splitchar, end);
-
-		// 	char *str;
-		// 	str = (char *)malloc(sizeof(char));
-
-		// 	sprintf(str, "%d", i);
-		// 	strcat(splitchar, str);
-
-		// 	str = NULL;
-		// 	free(str);
-		// }
-
 		if (strcmp(end, "INT") == zero)
 		{
 			schema->dataTypes[i] = DT_INT;
@@ -419,49 +394,18 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		}
 		else
 		{
+			char *stringParam;
 			strcpy(splitchar, end);
+			stringParam = createCharObject1();
 
-			char *str;
-			str = (char *)malloc(sizeof(char));
+			//sprintf(stringParam, "%d", i);
+			strcat(splitchar, stringParam);
 
-			sprintf(str, "%d", i);
-			strcat(splitchar, str);
-
-			str = NULL;
-			free(str);
-		}
-
-		// if (strcmp(end, "FLOAT") == zero)
-		// {
-		// 	schema->dataTypes[i] = DT_FLOAT;
-		// 	schema->typeLength[i] = zero;
-		// }
-		// else if (strcmp(end, "INT") == zero)
-		// {
-		// 	schema->dataTypes[i] = DT_INT;
-		// 	schema->typeLength[i] = zero;
-		// }
-		// else if (strcmp(end, "BOOL") == zero)
-		// {
-		// 	schema->dataTypes[i] = DT_BOOL;
-		// 	schema->typeLength[i] = zero;
-		// }
-		// else
-		// {
-		// 	strcpy(splitchar, end);
-
-		// 	char *str;
-		// 	str = (char *)malloc(sizeof(char));
-
-		// 	sprintf(str, "%d", i);
-		// 	strcat(splitchar, str);
-
-		// 	str = NULL;
-		// 	free(str);
-		// }
+			//stringParam = NULL;
+			free(stringParam);
+		}		
 	}
 
-	// to check ifkeys are present
 	if ((end = strtok(NULL, "(")) != NULL)
 	{
 
@@ -470,13 +414,12 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		int numOfKeys = zero;
 
 		end = strtok(NULL, ")");
-		splitKey = (char *)malloc(sizeof(char));
+		splitKey = createCharObject1();
 		splitKey = strtok(end, ", ");
 
-		// Find out the number of Keys & store the attrValues for those Keys
 		while (splitKey != NULL)
 		{
-			keyAttr[numOfKeys] = (char *)malloc(sizeof(char *));
+			keyAttr[numOfKeys] = createCharObject1();
 			strcpy(keyAttr[numOfKeys], splitKey);
 			numOfKeys++;
 			splitKey = strtok(NULL, ", ");
@@ -485,11 +428,9 @@ Schema *deserializeSchema(char *serializedSchemaData)
 		splitKey = NULL;
 		free(splitKey);
 
-		// MARK all the key attrs as their INDEX values
 		schema->keyAttrs = (int *)malloc(sizeof(int) * numOfKeys);
 		schema->keySize = numOfKeys;
 
-		// for every Key, find the attributes and mark it's index
 		for (i = zero; i < numOfKeys; i++)
 		{
 			for (j = zero; j < AttrNum; j++)
@@ -502,8 +443,6 @@ Schema *deserializeSchema(char *serializedSchemaData)
 			}
 		}
 	}
-
-	// for STRING[SIZE] allocate all the attributes
 
 	if (strlen(splitchar) != zero)
 	{
