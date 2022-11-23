@@ -649,18 +649,17 @@ Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
 */
 PageNumber *getFrameContents(BM_BufferPool *const bm)
 {
-	int page_count = GetPageCount(bm);
+	int noOfPages = GetPageCount(bm);
 
-	PageNumber *frameContent = getPNForFrameContent(bm, page_count);
+	PageNumber *frameContent = getPNForFrameContent(bm, noOfPages);
 	BufferFrame *allFrames = ((BufferManager *)bm->mgmtData)->start;
 	if (frameContent != NULL)
 	{
 		int i;
-		// iterate through pages and gets the frame content from the buffer pool
-		for (i = 0; i < page_count; i++)
+		for (i = 0; i < noOfPages; i++)
 		{
-			frameContent[i] = allFrames->pageNumber;
 			allFrames = allFrames->nextFrame;
+			frameContent[i] = allFrames->pageNumber;
 		}
 	}
 	return frameContent;
