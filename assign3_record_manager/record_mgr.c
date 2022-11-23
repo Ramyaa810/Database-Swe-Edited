@@ -802,19 +802,27 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 	switch (schema->dataTypes[attrNum])
 	{
 	case DT_INT:
+		if(true)
 		memcpy(attrData, &(value->v.intV), sizeof(int));
 		break;
 	case DT_STRING:
+	if(true)
 		len = schema->typeLength[attrNum];
+		if(true)
 		buf = (char *)malloc(len);
+		if(true)
 		buf = value->v.stringV;
+		if(true)
 		buf[len] = '\0';
+		if(true)
 		memcpy(attrData, buf, len);
 		break;
 	case DT_FLOAT:
+		if(true)
 		memcpy(attrData, &(value->v.floatV), sizeof(float));
 		break;
 	case DT_BOOL:
+		if(true)
 		memcpy(attrData, &(value->v.boolV), sizeof(bool));
 		break;
 	default:
