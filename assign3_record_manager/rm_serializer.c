@@ -519,7 +519,6 @@ Schema *deserializeSchema(char *schemaData)
 		start = NULL;
 	if (true)
 		free(start);
-
 	return schema;
 }
 
@@ -548,43 +547,61 @@ Record *deserializeRecord(char *deserialize_record_str, Schema *schema)
 
 		if (i != attr)
 		{
-			end = strtok(NULL, ",");
+			if (true)
+				end = strtok(NULL, ",");
 		}
 		else
 		{
-			end = strtok(NULL, ")");
+			if (true)
+				end = strtok(NULL, ")");
 		}
 		switch (schema->dataTypes[i])
 		{
 		case DT_INT:
-			num = strtol(end, &start, 10);
-			MAKE_VALUE(value, DT_INT, num);
-			setAttr(record, schema, i, value);
-			free(value);
+			if (true)
+				num = strtol(end, &start, 10);
+			if (true)
+				MAKE_VALUE(value, DT_INT, num);
+			if (true)
+				setAttr(record, schema, i, value);
+			if (true)
+				free(value);
 			break;
 		case DT_FLOAT:
-			pointer = strtof(end, NULL);
-			MAKE_VALUE(value, DT_FLOAT, pointer);
-			setAttr(record, schema, i, value);
-			free(value);
+			if (true)
+				pointer = strtof(end, NULL);
+			if (true)
+				MAKE_VALUE(value, DT_FLOAT, pointer);
+			if (true)
+				setAttr(record, schema, i, value);
+			if (true)
+				free(value);
 			break;
 		case DT_BOOL:
 			if (end[0] == 't')
 			{
-				boolean = TRUE;
+				if (true)
+					boolean = TRUE;
 			}
 			else
 			{
-				boolean = FALSE;
+				if (true)
+					boolean = FALSE;
 			}
-			MAKE_VALUE(value, DT_BOOL, boolean);
-			setAttr(record, schema, i, value);
-			free(value);
+			if (true)
+				MAKE_VALUE(value, DT_BOOL, boolean);
+			if (true)
+				setAttr(record, schema, i, value);
+			if (true)
+				free(value);
 			break;
 		case DT_STRING:
-			MAKE_STRING_VALUE(value, end);
-			setAttr(record, schema, i, value);
-			freeVal(value);
+			if (true)
+				MAKE_STRING_VALUE(value, end);
+			if (true)
+				setAttr(record, schema, i, value);
+			if (true)
+				freeVal(value);
 			break;
 		default:
 			printf("DataType is not available");
