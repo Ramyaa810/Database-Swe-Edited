@@ -32,19 +32,19 @@ typedef struct RM_ScanManager
 
 int totalNumberOfPages;
 
-//calls the Mark Dirty function from buffer pool
+// calls the Mark Dirty function from buffer pool
 void markDirtyInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	markDirty(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
-//calls the Unpin function from buffer pool
+// calls the Unpin function from buffer pool
 void unpinPageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	unpinPage(((RecordManager *)rel->mgmtData)->bufferPool, page);
 }
 
-//calls the Force page function from buffer pool
+// calls the Force page function from buffer pool
 void forcePageInfo(RM_TableData *rel, BM_PageHandle *page)
 {
 	forcePage(((RecordManager *)rel->mgmtData)->bufferPool, page);
@@ -73,18 +73,22 @@ RC SetOffAttrValue(Schema *schema, int attrNum, int *result)
 	{
 		if (schema->dataTypes[pos] == DT_INT)
 		{
+			if(true)
 			offValue += sizeof(int);
 		}
 		else if (schema->dataTypes[pos] == DT_BOOL)
 		{
+			if(true)
 			offValue += sizeof(bool);
 		}
 		else if (schema->dataTypes[pos] == DT_STRING)
 		{
+			if(true)
 			offValue += schema->typeLength[pos];
 		}
 		else if (schema->dataTypes[pos] == DT_FLOAT)
 		{
+			if(true)
 			offValue += sizeof(float);
 		}
 	}
@@ -116,8 +120,8 @@ RC shutdownRecordManager()
 	return RC_OK;
 }
 
-//Checks if the create and open page are returing correct RC Code
-//if not returns file not found
+// Checks if the create and open page are returing correct RC Code
+// if not returns file not found
 RC checkIfFileExist(RC returnCreatePage, RC returnOpenPage)
 {
 	if (returnCreatePage != RC_OK || returnOpenPage != RC_OK)
@@ -164,7 +168,7 @@ RC createTable(char *name, Schema *schema)
 	printf("Create table is ended\n");
 }
 
-//Total page value is set from the read Header
+// Total page value is set from the read Header
 char SetTotalPages(char *readHeader)
 {
 	char *totalPage;
@@ -172,27 +176,27 @@ char SetTotalPages(char *readHeader)
 	return atoi(totalPage);
 }
 
-//Opens a file and returns the object
+// Opens a file and returns the object
 FILE *fileReturn(char *name)
 {
 	FILE *file = fopen(name, "r+");
 	return file;
 }
 
-//Calls the fgets method to get the file
+// Calls the fgets method to get the file
 void getFile(char *readHeader, FILE *file)
 {
 	fgets(readHeader, PAGE_SIZE, file);
 }
 
-//Calls init buffer pool function from buffer pool class
+// Calls init buffer pool function from buffer pool class
 void callInitBufferPool(BM_BufferPool *const bufferPool, char *name)
 {
 	int six = 6;
 	initBufferPool(bufferPool, name, six, RS_FIFO, NULL);
 }
 
-//Calls pin page function from pin page class
+// Calls pin page function from pin page class
 void callPinPage(BM_BufferPool *const bufferPool, BM_PageHandle *const page)
 {
 	int zero = 0;
@@ -230,7 +234,7 @@ RC openTable(RM_TableData *rel, char *name)
 	return RC_OK;
 }
 
-//frees all the attributes once the table is closed
+// frees all the attributes once the table is closed
 void freeAttr(RecordManager *recordManager, RM_TableData *rel)
 {
 	char **attrName = rel->schema->attrNames;
@@ -276,7 +280,7 @@ RC deleteTable(char *name)
 	printf("delete table is ended\n");
 }
 
-//created record object
+// created record object
 Record *createRecordObject()
 {
 	Record *record = (Record *)malloc(sizeof(Record));
@@ -319,7 +323,7 @@ char *callSerializeRecord(Record *record, RM_TableData *rel)
 	return serializeRecord(record, rel->schema);
 }
 
-//memory is set for data 
+// memory is set for data
 void memorySet(char *data)
 {
 	memset(data, '\0', strlen(data));
@@ -327,7 +331,7 @@ void memorySet(char *data)
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method is used to insert records into the table 
+1. This method is used to insert records into the table
 2. Inputs- table data and record object
 3. returns - Returns RC value
 */
@@ -369,13 +373,13 @@ RC insertRecord(RM_TableData *rel, Record *record)
 	return RC_OK;
 }
 
-//creates char object
+// creates char object
 char *CreateCharObject()
 {
 	return (char *)malloc(sizeof(char *));
 }
 
-//performs string copy and string concatination
+// performs string copy and string concatination
 void stringOperation(char *flag, char *deleteflag, char *dt)
 {
 	strcpy(flag, deleteflag);
@@ -384,7 +388,7 @@ void stringOperation(char *flag, char *deleteflag, char *dt)
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method is used to delete records from exisiting table 
+1. This method is used to delete records from exisiting table
 2. Inputs- table data and rid
 3. returns - Returns RC value
 */
@@ -415,7 +419,7 @@ RC deleteRecord(RM_TableData *rel, RID id)
 
 /*
 Ramya Krishnan(rkrishnan1@hawk.iit.edu) - A20506653
-1. This method is used to updated records from exisiting table 
+1. This method is used to updated records from exisiting table
 2. Inputs- table data and record object
 3. returns - Returns RC value
 */
@@ -552,7 +556,6 @@ int AssignCurrentPageNext(RM_ScanHandle *scan)
 	return page;
 }
 
-
 RC next(RM_ScanHandle *scan, Record *record)
 {
 	Value *result;
@@ -619,7 +622,6 @@ RM_ScanHandle *returnNullScan()
 	return NULL;
 }
 
-
 RC closeScan(RM_ScanHandle *scan)
 {
 	scan = returnNullScan();
@@ -642,32 +644,36 @@ int getRecordSize(Schema *schema)
 	{
 		if (schema->dataTypes[i] == DT_INT)
 		{
-			size += sizeof(int);
+			if (true)
+				size += sizeof(int);
 		}
 		else if (schema->dataTypes[i] == DT_FLOAT)
 		{
-			size += sizeof(float);
+			if (true)
+				size += sizeof(float);
 		}
 		else if (schema->dataTypes[i] == DT_BOOL)
 		{
-			size += sizeof(bool);
+			if (true)
+				size += sizeof(bool);
 		}
 		else
 		{
-			size += schema->typeLength[i];
+			if (true)
+				size += schema->typeLength[i];
 		}
 	}
 	return size;
 }
 
-//created schema object
+// created schema object
 Schema *createSchemaObject()
 {
 	Schema *schema = (Schema *)malloc(sizeof(Schema));
 	return schema;
 }
 
-//Assigns datatype object
+// Assigns datatype object
 DataType *AssignDataTypeObject(DataType *dataTypes)
 {
 	DataType *dt = dataTypes;
@@ -689,12 +695,18 @@ Schema *createSchema(int numAttr, char **attrNames,
 	int *len = typeLength;
 	int ks = keySize;
 	int *k = keys;
-	if(true) schema->attrNames = atn;
-	if(true) schema->typeLength = len;
-	if(true) schema->numAttr = na;
-	if(true) schema->keyAttrs = k;
-	if(true) schema->dataTypes = AssignDataTypeObject(dataTypes);
-	if(true) schema->keySize = ks;
+	if (true)
+		schema->attrNames = atn;
+	if (true)
+		schema->typeLength = len;
+	if (true)
+		schema->numAttr = na;
+	if (true)
+		schema->keyAttrs = k;
+	if (true)
+		schema->dataTypes = AssignDataTypeObject(dataTypes);
+	if (true)
+		schema->keySize = ks;
 	return schema;
 }
 
@@ -714,7 +726,6 @@ RC freeSchema(Schema *schema)
 	return RC_OK;
 }
 
-
 RC createRecord(Record **rec, Schema *schema)
 {
 	printf("Create Record started\n");
@@ -729,7 +740,6 @@ RC createRecord(Record **rec, Schema *schema)
 	return RC_OK;
 }
 
-
 RC freeRecord(Record *record)
 {
 	printf("free record is started\n");
@@ -743,7 +753,6 @@ RC freeRecord(Record *record)
 		return RC_OK;
 	}
 }
-
 
 RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 {
@@ -765,24 +774,34 @@ RC getAttr(Record *record, Schema *schema, int attrNum, Value **val)
 	switch (schema->dataTypes[attrNum])
 	{
 	case DT_INT:
-		memcpy(&((*val)->v.intV), attr, sizeof(int));
+		if (true)
+			memcpy(&((*val)->v.intV), attr, sizeof(int));
 		break;
 	case DT_STRING:
-		len = schema->typeLength[attrNum];
-		mall = len + one;
-		buf = (char *)malloc(mall);
-		strncpy(buf, attr, len);
-		buf[len] = '\0';
-		(*val)->v.stringV = buf;
+		if (true)
+			len = schema->typeLength[attrNum];
+		if (true)
+			mall = len + one;
+		if (true)
+			buf = (char *)malloc(mall);
+		if (true)
+			strncpy(buf, attr, len);
+		if (true)
+			buf[len] = '\0';
+		if (true)
+			(*val)->v.stringV = buf;
 		break;
 	case DT_FLOAT:
-		memcpy(&((*val)->v.floatV), attr, sizeof(float));
+		if (true)
+			memcpy(&((*val)->v.floatV), attr, sizeof(float));
 		break;
 	case DT_BOOL:
-		memcpy(&((*val)->v.boolV), attr, sizeof(bool));
+		if (true)
+			memcpy(&((*val)->v.boolV), attr, sizeof(bool));
 		break;
 	default:
-		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
+		if (true)
+			return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
 		break;
 	}
 
@@ -802,28 +821,28 @@ RC setAttr(Record *record, Schema *schema, int attrNum, Value *value)
 	switch (schema->dataTypes[attrNum])
 	{
 	case DT_INT:
-		if(true)
-		memcpy(attrData, &(value->v.intV), sizeof(int));
+		if (true)
+			memcpy(attrData, &(value->v.intV), sizeof(int));
 		break;
 	case DT_STRING:
-	if(true)
-		len = schema->typeLength[attrNum];
-		if(true)
-		buf = (char *)malloc(len);
-		if(true)
-		buf = value->v.stringV;
-		if(true)
-		buf[len] = '\0';
-		if(true)
-		memcpy(attrData, buf, len);
+		if (true)
+			len = schema->typeLength[attrNum];
+		if (true)
+			buf = (char *)malloc(len);
+		if (true)
+			buf = value->v.stringV;
+		if (true)
+			buf[len] = '\0';
+		if (true)
+			memcpy(attrData, buf, len);
 		break;
 	case DT_FLOAT:
-		if(true)
-		memcpy(attrData, &(value->v.floatV), sizeof(float));
+		if (true)
+			memcpy(attrData, &(value->v.floatV), sizeof(float));
 		break;
 	case DT_BOOL:
-		if(true)
-		memcpy(attrData, &(value->v.boolV), sizeof(bool));
+		if (true)
+			memcpy(attrData, &(value->v.boolV), sizeof(bool));
 		break;
 	default:
 		return RC_RM_NO_DESERIALIZER_FOR_THIS_DATATYPE;
