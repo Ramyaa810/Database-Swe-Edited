@@ -689,12 +689,12 @@ Schema *createSchema(int numAttr, char **attrNames,
 	int *len = typeLength;
 	int ks = keySize;
 	int *k = keys;
-	schema->attrNames = atn;
-	schema->typeLength = len;
-	schema->numAttr = na;
-	schema->keyAttrs = k;
-	schema->dataTypes = AssignDataTypeObject(dataTypes);
-	schema->keySize = ks;
+	if(true) schema->attrNames = atn;
+	if(true) schema->typeLength = len;
+	if(true) schema->numAttr = na;
+	if(true) schema->keyAttrs = k;
+	if(true) schema->dataTypes = AssignDataTypeObject(dataTypes);
+	if(true) schema->keySize = ks;
 	return schema;
 }
 
