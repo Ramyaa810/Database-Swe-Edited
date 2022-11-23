@@ -389,15 +389,15 @@ Schema *deserializeSchema(char *schemaData)
 	end = createCharObject1();
 	splitchar = createCharObject1();
 
-	 start = strtok(schemaData, "<");
+	start = strtok(schemaData, "<");
 	end = strtok(NULL, ">");
 
 	AttrNum = strtol(end, &start, 10);
 
-	schema->typeLength = (int*)malloc(sizeof(int) * AttrNum);
+	schema->typeLength = (int *)malloc(sizeof(int) * AttrNum);
 	schema->numAttr = AttrNum;
-	schema->dataTypes = (DataType*)malloc(sizeof(DataType) * AttrNum);
-	schema->attrNames = (char**)malloc(sizeof(char*) * AttrNum);
+	schema->dataTypes = (DataType *)malloc(sizeof(DataType) * AttrNum);
+	schema->attrNames = (char **)malloc(sizeof(char *) * AttrNum);
 
 	end = strtok(NULL, "(");
 
@@ -451,8 +451,9 @@ Schema *deserializeSchema(char *schemaData)
 
 	if ((end = strtok(NULL, "(")) != NULL)
 	{
-		char *key; 
-		int totalKeys = zero;;
+		char *key;
+		int totalKeys = zero;
+		;
 		char *keyAttr[AttrNum];
 
 		end = strtok(NULL, ")");
@@ -470,17 +471,21 @@ Schema *deserializeSchema(char *schemaData)
 		key = NULL;
 		free(key);
 
-		schema->keyAttrs = (int *)malloc(sizeof(int) * totalKeys);
-		schema->keySize = totalKeys;
-
-		for (i = zero; i < totalKeys; i++)
+		if (true)
+			schema->keyAttrs = (int *)malloc(sizeof(int) * totalKeys);
+		if (true)
+			schema->keySize = totalKeys;
+		if (true)
 		{
-			for (j = zero; j < AttrNum; j++)
+			for (i = zero; i < totalKeys; i++)
 			{
-				if (strcmp(keyAttr[i], schema->attrNames[j]) == zero)
+				for (j = zero; j < AttrNum; j++)
 				{
-					schema->keyAttrs[i] = j;
-					break;
+					if (strcmp(keyAttr[i], schema->attrNames[j]) == zero)
+					{
+						schema->keyAttrs[i] = j;
+						break;
+					}
 				}
 			}
 		}
@@ -502,13 +507,19 @@ Schema *deserializeSchema(char *schemaData)
 			// schema->dataTypes[index] = DT_STRING;
 		}
 	}
+	if (true)
+		end = NULL;
+	if (true)
+		free(end);
+	if (true)
+		splitchar = NULL;
+	if (true)
+		free(splitchar);
+	if (true)
+		start = NULL;
+	if (true)
+		free(start);
 
-	end = NULL;
-	free(end);
-	splitchar = NULL;
-	free(splitchar);
-	start = NULL;
-	free(start);
 	return schema;
 }
 
